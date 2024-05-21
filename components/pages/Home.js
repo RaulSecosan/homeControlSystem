@@ -1,7 +1,6 @@
 import { StatusBar } from "expo-status-bar";
 import { StyleSheet, Text, View, Image, Pressable } from "react-native";
-// import homeInside from 'assets/images/homePage/homeInside.png'
-export default function App({ navigation }) {
+export default function Home({ navigation }) {
   function pressHandlerInside() {
     console.log("Press");
   }

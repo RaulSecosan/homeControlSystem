@@ -1,5 +1,4 @@
 import { StatusBar } from "expo-status-bar";
-import { StyleSheet } from "react-native";
 import { NavigationContainer } from "@react-navigation/native";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 
@@ -9,11 +8,6 @@ import Outside from "./components/pages/outside/Outside";
 const Stack = createNativeStackNavigator();
 
 export default function App() {
-  // return (
-  //   <View style={styles.container}>
-  //     <Home />
-  //   </View>
-  // );
   return (
     <>
       <StatusBar style="auto" />
@@ -30,10 +24,3 @@ export default function App() {
     </>
   );
 }
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    // alignItems: "center",
-    // justifyContent: "center",
-  },
-});

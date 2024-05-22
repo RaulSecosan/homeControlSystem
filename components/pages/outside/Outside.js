@@ -1,7 +1,8 @@
-import { StyleSheet, Text, View, ImageBackground } from "react-native";
+import { StyleSheet, Text, View, ImageBackground,Button } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 
 import ButtonOriginal from "../../ButtonOriginal";
+
 export default function App({ navigation }) {
   return (
     <View style={styles.container}>
@@ -79,7 +80,7 @@ export default function App({ navigation }) {
                 locations={[0, 0.8]}
                 style={styles.buttonBoxGradient}
               >
-                <ButtonOriginal name={"Open"} />
+                <ButtonOriginal name={"Open"}  action={'turnOn'}/>
               </LinearGradient>
             </View>
             <View style={styles.buttonBox}>
@@ -90,7 +91,7 @@ export default function App({ navigation }) {
                 locations={[0, 0.8]}
                 style={styles.buttonBoxGradient}
               >
-                <ButtonOriginal name={"Closed"} />
+                <ButtonOriginal name={"Closed"} action={'turnOff'}/>
               </LinearGradient>
             </View>
           </View>
@@ -125,7 +126,7 @@ export default function App({ navigation }) {
         </View>
 
         <View style={styles.backButton}>
-          <ButtonOriginal name={"←"} action={"Home"} navigation={navigation} />
+          <ButtonOriginal name={"←"} link={"Home"} navigation={navigation} />
         </View>
       </ImageBackground>
     </View>

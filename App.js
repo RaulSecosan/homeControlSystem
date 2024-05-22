@@ -4,7 +4,7 @@ import { createNativeStackNavigator } from "@react-navigation/native-stack";
 
 import Home from "./components/pages/Home";
 import Outside from "./components/pages/outside/Outside";
-
+import Bec from "./components/SensorsCommunication";
 const Stack = createNativeStackNavigator();
 
 export default function App() {
@@ -21,6 +21,7 @@ export default function App() {
           <Stack.Screen name="Outside" component={Outside} />
         </Stack.Navigator>
       </NavigationContainer>
+      {/* <Bec/> */}
     </>
   );
 }

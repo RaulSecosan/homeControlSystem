@@ -25,7 +25,7 @@ export default function App({ navigation }) {
                 locations={[0, 0.8]}
                 style={styles.buttonBoxGradient}
               >
-                <ButtonOriginal name={"Open"} />
+                <ButtonOriginal name={"Open"} action={'openFrontDoor'}/>
               </LinearGradient>
             </View>
             <View style={styles.buttonBox}>
@@ -36,7 +36,7 @@ export default function App({ navigation }) {
                 locations={[0, 0.8]}
                 style={styles.buttonBoxGradient}
               >
-                <ButtonOriginal name={"Closed"} />
+                <ButtonOriginal name={"Closed"} action={'closeFrontDoor'}/>
               </LinearGradient>
             </View>
           </View>
@@ -137,7 +137,6 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: "#531225",
-    // opacity: 0.15,
     opacityColor: 0.15,
     alignItems: "center",
     justifyContent: "center",

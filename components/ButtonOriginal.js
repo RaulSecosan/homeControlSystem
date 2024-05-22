@@ -3,6 +3,8 @@ import { NavigationContainer } from "@react-navigation/native";
 
 import { turnOn } from "./SensorsCommunication";
 import { turnOff } from "./SensorsCommunication";
+import { openFrontDoor } from "./SensorsCommunication";
+import { closeFrontDoor } from "./SensorsCommunication";
 
 export default function ButtonOriginal({
   navigation,
@@ -11,13 +13,28 @@ export default function ButtonOriginal({
   action,
 }) {
   function pressHandlerOutside() {
-    console.log(action);
-    // action === 'turnOn' ? turnOn() :  turnOff() ;
-    if (action === "turnOn") return turnOn();
-    else if (action === "turnOff") return turnOff();
-    // console.log(link.length);
+    console.log(action); 
+   // console.log(link.length);
     link.length !== 0 ? navigation.navigate(link) : "";
+
+    switch (action) {
+      case "turnOn":
+        turnOn();
+        break;
+      case "turnOff":
+        turnOff();
+        break;
+      case "openFrontDoor":
+        openFrontDoor();
+        break;
+      case "closeFrontDoor":
+        closeFrontDoor();
+        break;
+      default:
+        console.log("ai gresit comanda sau nu a fost inca initializata");
+    }
   }
+
   return (
     <Pressable
       onPress={pressHandlerOutside}
@@ -37,6 +54,6 @@ const styles = StyleSheet.create({
   },
 
   pressed: {
-    opacity: 0.7,
+    opacity: 0.3,
   },
 });

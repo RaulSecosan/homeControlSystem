@@ -2,7 +2,7 @@ import { StatusBar } from "expo-status-bar";
 import { StyleSheet, Text, View, Image, Pressable } from "react-native";
 export default function Home({ navigation }) {
   function pressHandlerInside() {
-    console.log("Press");
+    navigation.navigate("Inside");
   }
   function pressHandlerOutside() {
     // console.log("PresOutside");

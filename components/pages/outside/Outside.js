@@ -1,7 +1,9 @@
-import { StyleSheet, Text, View, ImageBackground,Button } from "react-native";
+import { StyleSheet, Text, View, ImageBackground, Button } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 
 import ButtonOriginal from "../../ButtonOriginal";
+import Title from "../../Title";
+import GroupButtons from "../../GroupButtons";
 
 export default function App({ navigation }) {
   return (
@@ -11,10 +13,14 @@ export default function App({ navigation }) {
         resizeMode="cover"
         style={styles.backgroundImg}
       >
-        <View style={styles.titleBox}>
-          <Text style={styles.title}>Outside</Text>
-        </View>
-        <View style={styles.alignContainer}>
+        <Title name="Outside" />
+
+        <GroupButtons paragraphName='Main Door' buttonLeftName='Open' buttonRightName='Close'/>
+        <GroupButtons paragraphName='Lumini de pe alee' buttonLeftName='On' buttonRightName='Off'/>
+        <GroupButtons paragraphName='Lumini de pe Casa' buttonLeftName='On' buttonRightName='Off'/>
+        <GroupButtons paragraphName='Usa garaj' buttonLeftName='Open' buttonRightName='Close'/>
+
+        {/* <View style={styles.alignContainer}>
           <Text style={styles.paragraph}>Usa de la intrare</Text>
           <View style={styles.buttonRow}>
             <View style={styles.buttonBox}>
@@ -25,7 +31,7 @@ export default function App({ navigation }) {
                 locations={[0, 0.8]}
                 style={styles.buttonBoxGradient}
               >
-                <ButtonOriginal name={"Open"} action={'openFrontDoor'}/>
+                <ButtonOriginal name={"Open"} action={"openFrontDoor"} />
               </LinearGradient>
             </View>
             <View style={styles.buttonBox}>
@@ -36,12 +42,14 @@ export default function App({ navigation }) {
                 locations={[0, 0.8]}
                 style={styles.buttonBoxGradient}
               >
-                <ButtonOriginal name={"Closed"} action={'closeFrontDoor'}/>
+                <ButtonOriginal name={"Closed"} action={"closeFrontDoor"} />
               </LinearGradient>
             </View>
           </View>
-        </View>
-        <View style={styles.alignContainer}>
+        </View> */}
+
+        
+        {/* <View style={styles.alignContainer}>
           <Text style={styles.paragraph}>Lumini de pe Alee</Text>
           <View style={styles.buttonRow}>
             <View style={styles.buttonBox}>
@@ -67,9 +75,9 @@ export default function App({ navigation }) {
               </LinearGradient>
             </View>
           </View>
-        </View>
+        </View> */}
 
-        <View style={styles.alignContainer}>
+        {/* <View style={styles.alignContainer}>
           <Text style={styles.paragraph}>Lumini de pe Casa</Text>
           <View style={styles.buttonRow}>
             <View style={styles.buttonBox}>
@@ -80,7 +88,7 @@ export default function App({ navigation }) {
                 locations={[0, 0.8]}
                 style={styles.buttonBoxGradient}
               >
-                <ButtonOriginal name={"Open"}  action={'turnOn'}/>
+                <ButtonOriginal name={"Open"} action={"turnOn"} />
               </LinearGradient>
             </View>
             <View style={styles.buttonBox}>
@@ -91,13 +99,13 @@ export default function App({ navigation }) {
                 locations={[0, 0.8]}
                 style={styles.buttonBoxGradient}
               >
-                <ButtonOriginal name={"Closed"} action={'turnOff'}/>
+                <ButtonOriginal name={"Closed"} action={"turnOff"} />
               </LinearGradient>
             </View>
           </View>
-        </View>
+        </View> */}
 
-        <View style={styles.alignContainer}>
+        {/* <View style={styles.alignContainer}>
           <Text style={styles.paragraph}>Usa Garaj</Text>
           <View style={styles.buttonRow}>
             <View style={styles.buttonBox}>
@@ -123,7 +131,7 @@ export default function App({ navigation }) {
               </LinearGradient>
             </View>
           </View>
-        </View>
+        </View> */}
 
         <View style={styles.backButton}>
           <ButtonOriginal name={"←"} link={"Home"} navigation={navigation} />
@@ -149,43 +157,33 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
   },
-  titleBox: {
-    width: 138,
-    height: 50,
-    backgroundColor: "#9D5757",
-    justifyContent: "center",
-    alignItems: "center",
-    borderRadius: 15,
-  },
-  title: {
-    color: "white",
-    fontSize: 30,
-  },
-  alignContainer: {
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  paragraph: {
-    fontSize: 30,
-    marginTop: 40,
-    color: "white",
-  },
-  buttonRow: {
-    flexDirection: "row",
-    gap: 20,
-  },
 
-  buttonBoxGradient: {
-    width: 154,
-    height: 40,
-    borderRadius: 50,
-    borderWidth: 0.5,
-    borderColor: "#BB6666",
-    justifyContent: "center",
-    alignItems: "center",
-    marginTop: 20,
-    opacity: 0.8,
-  },
+  // alignContainer: {
+  //   justifyContent: "center",
+  //   alignItems: "center",
+  // },
+
+  // paragraph: {
+  //   fontSize: 30,
+  //   marginTop: 40,
+  //   color: "white",
+  // },
+  // buttonRow: {
+  //   flexDirection: "row",
+  //   gap: 20,
+  // },
+
+  // buttonBoxGradient: {
+  //   width: 154,
+  //   height: 40,
+  //   borderRadius: 50,
+  //   borderWidth: 0.5,
+  //   borderColor: "#BB6666",
+  //   justifyContent: "center",
+  //   alignItems: "center",
+  //   marginTop: 20,
+  //   opacity: 0.8,
+  // },
 
   backButton: {
     marginTop: 60,

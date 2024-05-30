@@ -4,6 +4,7 @@ import { LinearGradient } from "expo-linear-gradient";
 import ButtonOriginal from "../../ButtonOriginal";
 import Title from "../../Title";
 import GroupButtons from "../../GroupButtons";
+import DirectionButton from "../../DirectionButton";
 
 export default function App({ navigation }) {
   return (
@@ -15,11 +16,32 @@ export default function App({ navigation }) {
       >
         <Title name="Outside" />
 
-        <GroupButtons paragraphName='Main Door' buttonLeftName='Open' buttonRightName='Close'/>
-        <GroupButtons paragraphName='Lumini de pe alee' buttonLeftName='On' buttonRightName='Off'/>
-        <GroupButtons paragraphName='Lumini de pe Casa' buttonLeftName='On' buttonRightName='Off'/>
-        <GroupButtons paragraphName='Usa garaj' buttonLeftName='Open' buttonRightName='Close'/>
+        <GroupButtons
+          paragraphName="Main Door"
+          buttonLeftName="Open"
+          buttonLeftAction="openFrontDoor"
+          buttonRightName="Close"
+          buttonRightAction="closeFrontDoor"
+        />
+        <GroupButtons
+          paragraphName="Lumini de pe alee"
+          buttonLeftName="On"
+          buttonRightName="Off"
+        />
+        <GroupButtons
+          paragraphName="Lumini de pe Casa"
+          buttonLeftName="On"
+          buttonLeftAction="turnOn"
+          buttonRightName="Off"
+          buttonRightAction="turnOff"
+        />
+        <GroupButtons
+          paragraphName="Usa garaj"
+          buttonLeftName="Open"
+          buttonRightName="Close"
+        />
 
+        <DirectionButton name={"←"} link={"Home"} navigation={navigation} />
         {/* <View style={styles.alignContainer}>
           <Text style={styles.paragraph}>Usa de la intrare</Text>
           <View style={styles.buttonRow}>
@@ -48,7 +70,6 @@ export default function App({ navigation }) {
           </View>
         </View> */}
 
-        
         {/* <View style={styles.alignContainer}>
           <Text style={styles.paragraph}>Lumini de pe Alee</Text>
           <View style={styles.buttonRow}>
@@ -132,10 +153,10 @@ export default function App({ navigation }) {
             </View>
           </View>
         </View> */}
-
+        {/* 
         <View style={styles.backButton}>
           <ButtonOriginal name={"←"} link={"Home"} navigation={navigation} />
-        </View>
+        </View> */}
       </ImageBackground>
     </View>
   );

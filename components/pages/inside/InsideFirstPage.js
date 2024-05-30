@@ -1,20 +1,63 @@
-import { StyleSheet, Text, View, ImageBackground, Button } from "react-native";
-import { LinearGradient } from "expo-linear-gradient";
+import { StyleSheet, Text, View, Image, Pressable } from "react-native";
 
 import ButtonOriginal from "../../ButtonOriginal";
 import Title from "../../Title";
 import GroupButtons from "../../GroupButtons";
+import DirectionButton from "../../DirectionButton";
+import { OneButton } from "../../GroupButtons";
+import { LinearGradient } from "expo-linear-gradient";
 
 export default function Inside({ navigation }) {
+  function pressHandlerSensors() {
+    navigation.navigate("Sensors");
+  }
+  function pressHandlerLights() {
+    navigation.navigate("Lights");
+  }
   return (
     <View style={styles.container}>
-      <Title name="Inside" />
-      <GroupButtons paragraphName='Hall Lights' buttonLeftName='On' buttonRightName='Off'/>
-      
+      <View style={styles.title}>
+        <Title name="Inside" />
+      </View>
+      <GroupButtons
+        paragraphName="Hall Lights"
+        buttonLeftName="On"
+        buttonRightName="Off"
+      />
 
+      <View style={styles.insideBox}>
+        <Image
+          source={require("../../../assets/images/inside/sensorsPhoto.png")}
+        />
+        {/* Text Box */}
+        <Pressable
+          onPress={pressHandlerSensors}
+          style={({ pressed }) => (pressed ? [styles.pressed] : "")}
+        >
+          <View style={styles.buttonBox}>
+            <Text style={styles.button}>Sensors</Text>
+          </View>
+        </Pressable>
+      </View>
 
-      <View style={styles.backButton}>
-        <ButtonOriginal name={"←"} link={"Home"} navigation={navigation} />
+      <View style={styles.insideBox}>
+        <Image
+          source={require("../../../assets/images/inside/lightsPhoto.png")}
+        />
+        {/* Text Box */}
+        <Pressable
+          onPress={pressHandlerLights}
+          style={({ pressed }) => (pressed ? [styles.pressed] : "")}
+        >
+          <View style={styles.buttonBox}>
+            <Text style={styles.button}>Lights</Text>
+          </View>
+        </Pressable>
+      </View>
+
+      <View style={styles.bottomButtons}>
+        <DirectionButton name={"→"} link={"Home"} navigation={navigation} />
+        <OneButton name="H" link="Home" navigation={navigation} />
       </View>
     </View>
   );
@@ -24,52 +67,43 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: "#531225",
-    opacityColor: 0.15,
     alignItems: "center",
     justifyContent: "center",
-    zIndex: 1,
   },
-  backgroundImg: {
-    flex: 1,
-    width: "100%",
-    zIndex: 1000,
-    justifyContent: "center",
-    alignItems: "center",
+  title: {
+    marginTop: 30,
   },
 
-  alignContainer: {
+  insideBox: {
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
+    alignItems: "center",
+    shadowColor: "black",
+    shadowOffset: { width: 0, height: 4 },
+    shadowRadius: 6,
+    shadowOpacity: 1,
+    // marginBottom: 20,
+    marginTop: 40,
+  },
+  buttonBox: {
+    marginTop: -65,
+    backgroundColor: "#883838",
+    width: 138,
+    height: 50,
     justifyContent: "center",
     alignItems: "center",
+    borderRadius: 15,
   },
-  paragraph: {
+  button: {
     fontSize: 30,
-    marginTop: 40,
     color: "white",
   },
-  buttonRow: {
-    flexDirection: "row",
-    gap: 20,
-  },
 
-  buttonBoxGradient: {
-    width: 154,
-    height: 40,
-    borderRadius: 50,
-    borderWidth: 0.5,
-    borderColor: "#BB6666",
-    justifyContent: "center",
-    alignItems: "center",
-    marginTop: 20,
-    opacity: 0.8,
+  pressed: {
+    opacity: 0.7,
   },
-
-  backButton: {
-    marginTop: 60,
-    width: 165,
-    height: 50,
-    backgroundColor: "#9D5757",
-    justifyContent: "center",
+  bottomButtons: {
+    flexDirection: "row-reverse",
     alignItems: "center",
-    borderRadius: 30,
   },
 });

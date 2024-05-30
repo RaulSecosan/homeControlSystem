@@ -13,8 +13,8 @@ export default function ButtonOriginal({
   action,
 }) {
   function pressHandlerOutside() {
-    console.log(action); 
-   // console.log(link.length);
+    console.log(action);
+    // console.log(link.length);
     link.length !== 0 ? navigation.navigate(link) : "";
 
     switch (action) {
@@ -40,9 +40,7 @@ export default function ButtonOriginal({
       onPress={pressHandlerOutside}
       style={({ pressed }) => (pressed ? [styles.pressed] : "")}
     >
-      <View style={styles.buttonBox}>
-        <Text style={styles.button}>{name}</Text>
-      </View>
+      <Text style={styles.button}>{name}</Text>
     </Pressable>
   );
 }

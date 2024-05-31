@@ -8,6 +8,7 @@ import Bec from "./components/SensorsCommunication";
 import Inside from "./components/pages/inside/InsideFirstPage";
 import InsideSecondPage from "./components/pages/inside/InsideSecondPage";
 import Sensors from "./components/pages/inside/Sensors";
+import InsideLights from "./components/pages/inside/InsideLights";
 const Stack = createNativeStackNavigator();
 
 export default function App() {
@@ -25,6 +26,7 @@ export default function App() {
           <Stack.Screen name="Inside" component={Inside} />
           <Stack.Screen name="InsideSecondPage" component={InsideSecondPage} />
           <Stack.Screen name="Sensors" component={Sensors} />
+          <Stack.Screen name="InsideLights" component={InsideLights} />
         </Stack.Navigator>
       </NavigationContainer>
       {/* <Bec/> */}

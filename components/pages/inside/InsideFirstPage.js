@@ -12,7 +12,7 @@ export default function Inside({ navigation }) {
     navigation.navigate("Sensors");
   }
   function pressHandlerLights() {
-    navigation.navigate("Lights");
+    navigation.navigate("InsideLights");
   }
   return (
     <View style={styles.container}>

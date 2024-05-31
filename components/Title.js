@@ -10,7 +10,7 @@ export default function Title({ name }) {
 
 const styles = StyleSheet.create({
   titleBox: {
-    width: 138,
+    // width: 138,
     height: 50,
     backgroundColor: "#9D5757",
     justifyContent: "center",
@@ -20,5 +20,6 @@ const styles = StyleSheet.create({
   title: {
     color: "white",
     fontSize: 30,
+    paddingHorizontal:25,
   },
 });

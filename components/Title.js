@@ -20,6 +20,6 @@ const styles = StyleSheet.create({
   title: {
     color: "white",
     fontSize: 30,
-    paddingHorizontal:25,
+    paddingHorizontal: 25,
   },
 });

@@ -1,63 +1,56 @@
 import { StyleSheet, Text, View, Image, Pressable } from "react-native";
 
-import ButtonOriginal from "../../ButtonOriginal";
 import Title from "../../Title";
 import GroupButtons from "../../GroupButtons";
 import DirectionButton from "../../DirectionButton";
 import { OneButton } from "../../GroupButtons";
 import { LinearGradient } from "expo-linear-gradient";
 
-export default function Inside({ navigation }) {
-  function pressHandlerSensors() {
-    navigation.navigate("Sensors");
+export default function InsideSecondPage({ navigation }) {
+  function pressHandlerDoors() {
+    navigation.navigate("Doors");
   }
-  function pressHandlerLights() {
-    navigation.navigate("Lights");
+  function pressHandlerWindows() {
+    navigation.navigate("Windows");
   }
   return (
     <View style={styles.container}>
       <View style={styles.title}>
         <Title name="Inside" />
       </View>
-      <GroupButtons
-        paragraphName="Hall Lights"
-        buttonLeftName="On"
-        buttonRightName="Off"
-      />
 
       <View style={styles.insideBox}>
         <Image
-          source={require("../../../assets/images/inside/sensorsPhoto.png")}
+          source={require("../../../assets/images/inside/SecondPageDoor.png")}
         />
         {/* Text Box */}
         <Pressable
-          onPress={pressHandlerSensors}
+          onPress={pressHandlerDoors}
           style={({ pressed }) => (pressed ? [styles.pressed] : "")}
         >
           <View style={styles.buttonBox}>
-            <Text style={styles.button}>Sensors</Text>
+            <Text style={styles.button}>Doors</Text>
           </View>
         </Pressable>
       </View>
 
       <View style={styles.insideBox}>
         <Image
-          source={require("../../../assets/images/inside/lightsPhoto.png")}
+          source={require("../../../assets/images/inside/SecondPageWindow.png")}
         />
         {/* Text Box */}
         <Pressable
-          onPress={pressHandlerLights}
+          onPress={pressHandlerWindows}
           style={({ pressed }) => (pressed ? [styles.pressed] : "")}
         >
           <View style={styles.buttonBox}>
-            <Text style={styles.button}>Lights</Text>
+            <Text style={styles.button}>Windows</Text>
           </View>
         </Pressable>
       </View>
 
-      <View style={styles.bottomButtons}>
-        <DirectionButton name={"→"} link={"InsideSecondPage"} navigation={navigation} />
-        <OneButton name="H" link="Home" navigation={navigation} />
+      <View style={styles.backButton}>
+        <DirectionButton name={"←"} link={"Inside"} navigation={navigation} />
       </View>
     </View>
   );
@@ -71,7 +64,8 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
   title: {
-    marginTop: 30,
+    // marginTop: 30,
+    top: -20,
   },
 
   insideBox: {
@@ -82,8 +76,8 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 4 },
     shadowRadius: 6,
     shadowOpacity: 1,
-    // marginBottom: 20,
-    marginTop: 40,
+    marginBottom: 30,
+    marginTop: 30,
   },
   buttonBox: {
     marginTop: -65,
@@ -102,8 +96,7 @@ const styles = StyleSheet.create({
   pressed: {
     opacity: 0.7,
   },
-  bottomButtons: {
-    flexDirection: "row-reverse",
-    alignItems: "center",
-  },
+  backButton:{
+    bottom: -30,
+  }
 });

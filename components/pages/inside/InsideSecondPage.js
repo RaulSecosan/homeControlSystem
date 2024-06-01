@@ -8,10 +8,10 @@ import { LinearGradient } from "expo-linear-gradient";
 
 export default function InsideSecondPage({ navigation }) {
   function pressHandlerDoors() {
-    navigation.navigate("Doors");
+    navigation.navigate("InsideDoors");
   }
   function pressHandlerWindows() {
-    navigation.navigate("Windows");
+    navigation.navigate("InsideWindows");
   }
   return (
     <View style={styles.container}>

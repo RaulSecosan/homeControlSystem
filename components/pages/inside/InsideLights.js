@@ -1,7 +1,5 @@
 import { StyleSheet, Text, View, ImageBackground, Button } from "react-native";
-import { LinearGradient } from "expo-linear-gradient";
 
-import ButtonOriginal from "../../ButtonOriginal";
 import Title from "../../Title";
 import GroupButtons from "../../GroupButtons";
 import DirectionButton from "../../DirectionButton";
@@ -46,7 +44,6 @@ export default function InsideLights({ navigation }) {
         <View style={styles.backButton}>
           <DirectionButton name={"←"} link={"Home"} navigation={navigation} />
         </View>
-
       </ImageBackground>
     </View>
   );
@@ -71,6 +68,5 @@ const styles = StyleSheet.create({
 
   backButton: {
     marginTop: 35,
-   
   },
 });

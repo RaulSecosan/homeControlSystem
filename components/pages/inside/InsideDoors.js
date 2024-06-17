@@ -20,9 +20,9 @@ export default function InsideDoors({ navigation }) {
           <GroupButtons
             paragraphName="Main Door"
             buttonLeftName="Open"
-            buttonLeftAction="openMainDoor"
+            buttonLeftAction="openFrontDoor"
             buttonRightName="Close"
-            buttonRightAction="closeMainDoor"
+            buttonRightAction="closeFrontDoor"
           />
 
           <GroupButtons
@@ -36,14 +36,18 @@ export default function InsideDoors({ navigation }) {
           <GroupButtons
             paragraphName="BedRoom Door"
             buttonLeftName="Open"
-            buttonLeftAction="openBedroomDoor"
+            buttonLeftAction="openBedRoomDoor"
             buttonRightName="Close"
-            buttonRightAction="closeBedroomDoor"
+            buttonRightAction="closeBedRoomDoor"
           />
         </View>
 
         <View style={styles.backButton}>
-          <DirectionButton name={"←"} link={"InsideSecondPage"} navigation={navigation} />
+          <DirectionButton
+            name={"←"}
+            link={"InsideSecondPage"}
+            navigation={navigation}
+          />
         </View>
       </ImageBackground>
     </View>

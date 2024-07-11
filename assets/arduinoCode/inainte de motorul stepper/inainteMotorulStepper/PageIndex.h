@@ -1,3 +1,16 @@
+// const char MAIN_page[] PROGMEM = R"=====(
+// <html>
+//   <body>
+//     <h1>Control BEC</h1>
+//     <a href="/on">ON</a> |
+//     <a href="/off">OFF</a>
+//     <a href="/openFrontDoor">Open front door</a>
+//     <a href="/closeFrontDoor">Close front door</a>
+//   </body>
+// </html>
+// )=====";
+
+
 const char MAIN_page[] PROGMEM = R"=====(
 <!DOCTYPE html>
 <html>
@@ -45,10 +58,7 @@ const char MAIN_page[] PROGMEM = R"=====(
   <button onclick="sendRequest('/firstLedOff')">Stinge LED 1</button>
   <button onclick="sendRequest('/on')">Aprinde LED QH</button>
   <button onclick="sendRequest('/off')">Stinge LED QH</button>
-
-  <h2>Stepper Motor</h2>
-  <button onclick="sendRequest('/moveForward')">Move Forward 190 Degrees</button>
-  <button onclick="sendRequest('/moveBackward')">Move Backward 190 Degrees</button>
 </body>
 </html>
 )=====";
+

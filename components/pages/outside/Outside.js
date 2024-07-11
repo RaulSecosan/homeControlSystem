@@ -38,7 +38,9 @@ export default function App({ navigation }) {
         <GroupButtons
           paragraphName="Usa garaj"
           buttonLeftName="Open"
+          buttonLeftAction="openGate"
           buttonRightName="Close"
+          buttonRightAction="closeGate"
         />
 
         <DirectionButton name={"←"} link={"Home"} navigation={navigation} />

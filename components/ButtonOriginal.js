@@ -1,8 +1,22 @@
 import { StyleSheet, Text, View, Pressable } from "react-native";
 import { NavigationContainer } from "@react-navigation/native";
 
-import { turnOn, turnOff, openFrontDoor, closeFrontDoor, openGuestDoor, closeGuestDoor, openBedRoomDoor, closeBedRoomDoor } from "./SensorsCommunication";
-
+import {
+  turnOn,
+  turnOff,
+  openFrontDoor,
+  closeFrontDoor,
+  openGuestDoor,
+  closeGuestDoor,
+  openBedRoomDoor,
+  closeBedRoomDoor,
+  openDoor,
+  closeDoor,
+  openGate,
+  closeGate,
+  on,
+  off,
+} from "./SensorsCommunication";
 
 export default function ButtonOriginal({
   navigation,
@@ -39,6 +53,24 @@ export default function ButtonOriginal({
         break;
       case "closeBedRoomDoor":
         closeBedRoomDoor();
+        break;
+      case "openDoor":
+        openDoor();
+        break;
+      case "closeDoor":
+        closeDoor();
+        break;
+      case "openGate":
+        openGate();
+        break;
+      case "closeGate":
+        closeGate();
+        break;
+      case "onn":
+        on();
+        break;
+      case "offf":
+        off();
         break;
       default:
         console.log("ai gresit comanda sau nu a fost inca initializata");

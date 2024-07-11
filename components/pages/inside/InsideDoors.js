@@ -40,6 +40,21 @@ export default function InsideDoors({ navigation }) {
             buttonRightName="Close"
             buttonRightAction="closeBedRoomDoor"
           />
+
+          <GroupButtons
+            paragraphName="Bedor"
+            buttonLeftName="Open"
+            buttonLeftAction="openDoor"
+            buttonRightName="Close"
+            buttonRightAction="closeDoor"
+          />
+          <GroupButtons
+            paragraphName="Led"
+            buttonLeftName="Open"
+            buttonLeftAction="onn"
+            buttonRightName="Close"
+            buttonRightAction="offf"
+          />
         </View>
 
         <View style={styles.backButton}>

@@ -27,31 +27,13 @@ ShiftRegister74HC595<2> sr(dataPin, clockPin, latchPin);
 #define BED_ROOM_DOOR 1
 #define GUEST_DOOR 2
 
-// Define channels for stepper motor on the first shift register
-#define IN1 3
-#define IN2 4
-#define IN3 5
-#define IN4 6
-
-// Stepper motor steps and delays
-const int stepsPerRevolution = 2048; // 2048 steps per revolution for 28BYJ-48
-const int stepsFor190Degrees = (stepsPerRevolution * 190) / 360;
-const int stepperSpeedDelay = 5; // Adjust this value to change speed
-
-volatile bool direction = true; // true = forward, false = backward
-volatile bool isRunning = false;
-volatile int stepsToMove = 0;
-unsigned long lastStepperUpdate = 0;
-
 // Variables for servo control
 int guestDoorPosition; // Initial position of the guest door servo
 int frontDoorPosition; // Initial position of the front door servo
 int bedRoomDoorPosition; // Initial position of the bedroom door servo
 unsigned long lastServoUpdate = 0;
 const int pwmFrequency = 50; // Servo PWM frequency in Hz (standard is 50Hz)
-const int pwmPeriod = 20; // Period in milliseconds (20ms for 50Hz)
-const int pulseMin = 544; // Minimum pulse width in microseconds
-const int pulseMax = 2400; // Maximum pulse width in microseconds
+const int pwmPeriod = 1000 / pwmFrequency; // Period in milliseconds
 
 // HTML page for the web server
 void handleRoot() {
@@ -127,104 +109,27 @@ void updateServoPWM() {
   unsigned long currentTime = millis();
   if (currentTime - lastServoUpdate >= pwmPeriod) {
     lastServoUpdate = currentTime;
-
-    int guestDoorPulse = map(guestDoorPosition, 0, 180, pulseMin, pulseMax);
-    int frontDoorPulse = map(frontDoorPosition, 0, 180, pulseMin, pulseMax);
-    int bedRoomPulse = map(bedRoomDoorPosition, 0, 180, pulseMin, pulseMax);
-
-    // Send PWM signal to Guest Door Servo
+    int guestDoorDutyCycle = map(guestDoorPosition, 0, 180, 544, 2400); // Map the position to servo PWM range (544 to 2400 microseconds)
+    int frontDoorDutyCycle = map(frontDoorPosition, 0, 180, 544, 2400); // Map the position to servo PWM range (544 to 2400 microseconds)
+    int bedRoomDutyCycle = map(bedRoomDoorPosition, 0, 180, 544, 2400); // Map the position to servo PWM range (544 to 2400 microseconds)
+    
+    // Update Guest Door Servo
     sr.set(GUEST_DOOR, true);
-    delayMicroseconds(guestDoorPulse);
+    delayMicroseconds(guestDoorDutyCycle); // High time for guest door servo
     sr.set(GUEST_DOOR, false);
-
-    // Send PWM signal to Front Door Servo
+    
+    // Update Front Door Servo
     sr.set(FRONT_DOOR, true);
-    delayMicroseconds(frontDoorPulse);
+    delayMicroseconds(frontDoorDutyCycle); // High time for front door servo
     sr.set(FRONT_DOOR, false);
 
-    // Send PWM signal to Bedroom Door Servo
+    // Update Bedroom Door Servo
     sr.set(BED_ROOM_DOOR, true);
-    delayMicroseconds(bedRoomPulse);
+    delayMicroseconds(bedRoomDutyCycle); // High time for bedroom door servo
     sr.set(BED_ROOM_DOOR, false);
+    
+    delayMicroseconds(pwmPeriod * 1000 - max(max(guestDoorDutyCycle, frontDoorDutyCycle), bedRoomDutyCycle)); // Low time
   }
-}
-
-// Functions to handle stepper motor control
-void stepMotor(int step) {
-  switch (step) {
-    case 0:
-      sr.set(IN1, true);
-      sr.set(IN2, false);
-      sr.set(IN3, false);
-      sr.set(IN4, false);
-      break;
-    case 1:
-      sr.set(IN1, false);
-      sr.set(IN2, true);
-      sr.set(IN3, false);
-      sr.set(IN4, false);
-      break;
-    case 2:
-      sr.set(IN1, false);
-      sr.set(IN2, false);
-      sr.set(IN3, true);
-      sr.set(IN4, false);
-      break;
-    case 3:
-      sr.set(IN1, false);
-      sr.set(IN2, false);
-      sr.set(IN3, false);
-      sr.set(IN4, true);
-      break;
-  }
-}
-
-void deactivateMotor() {
-  sr.set(IN1, false);
-  sr.set(IN2, false);
-  sr.set(IN3, false);
-  sr.set(IN4, false);
-}
-
-void stepperTask() {
-  if (isRunning && stepsToMove > 0) {
-    unsigned long currentTime = millis();
-    if (currentTime - lastStepperUpdate >= stepperSpeedDelay) {
-      lastStepperUpdate = currentTime;
-      static int currentStep = 0;
-      stepMotor(currentStep);
-      if (direction) {
-        currentStep++;
-        if (currentStep > 3) {
-          currentStep = 0;
-        }
-      } else {
-        currentStep--;
-        if (currentStep < 0) {
-          currentStep = 3;
-        }
-      }
-      stepsToMove--;
-      if (stepsToMove == 0) {
-        isRunning = false;
-        deactivateMotor(); // Deactivate motor when done
-      }
-    }
-  }
-}
-
-void moveForward() {
-  stepsToMove = stepsFor190Degrees;
-  direction = true;
-  isRunning = true;
-  server.send(200, "text/plain", "Moving 190 degrees forward");
-}
-
-void moveBackward() {
-  stepsToMove = stepsFor190Degrees;
-  direction = false;
-  isRunning = true;
-  server.send(200, "text/plain", "Moving 190 degrees backward");
 }
 
 // Setup function
@@ -251,7 +156,6 @@ void setup() {
   setFrontDoorPosition(15);
   setBedRoomDoorPosition(150);
 
- 
   // Define routes for the web server
   server.on("/", handleRoot);
   server.on("/on", ledOn);
@@ -264,8 +168,6 @@ void setup() {
   server.on("/closeFrontDoor", closeFrontDoor);
   server.on("/openBedRoomDoor", openBedRoomDoor);
   server.on("/closeBedRoomDoor", closeBedRoomDoor);
-  server.on("/moveForward", moveForward);
-  server.on("/moveBackward", moveBackward);
 
   server.begin();
   Serial.println("HTTP server started");
@@ -275,5 +177,7 @@ void setup() {
 void loop() {
   server.handleClient();
   updateServoPWM(); // Update the servo PWM signal
-  stepperTask(); // Call the stepper task function in the loop
 }
+
+
+

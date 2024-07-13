@@ -13,7 +13,6 @@ import InsideDoors from "./components/pages/inside/InsideDoors";
 import InsideWindows from "./components/pages/inside/InsideWindows";
 import Login from "./components/pages/LoginRegister/Login";
 import SignUp from "./components/pages/LoginRegister/SignUp";
-
 const Stack = createNativeStackNavigator();
 
 export default function App() {
@@ -34,6 +33,7 @@ export default function App() {
           <Stack.Screen name="InsideSecondPage" component={InsideSecondPage} />
           <Stack.Screen name="Sensors" component={Sensors} />
           <Stack.Screen name="InsideLights" component={InsideLights} />
+
           <Stack.Screen name="InsideDoors" component={InsideDoors} />
           <Stack.Screen name="InsideWindows" component={InsideWindows} />
         </Stack.Navigator>

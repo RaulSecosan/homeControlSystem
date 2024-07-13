@@ -1,30 +1,26 @@
-import {
-  StyleSheet,
-  Text,
-  View,
-  ImageBackground,
-  TextInput,
-} from "react-native";
-import Slider from "@react-native-community/slider";
-
-import Title from "../../Title";
+import React, { useState } from 'react';
+import { View, Text, StyleSheet, ImageBackground } from 'react-native';
+import Slider from '@react-native-community/slider';
+import Title from '../../Title';
 import GroupButtons from "../../GroupButtons";
 import DirectionButton from "../../DirectionButton";
-import { Fragment, useState } from "react";
 
-export default function InsideLights({ navigation }) {
+const CustomSlider = ({navigation}) => {
   const [sliderValueLiving, setSliderValueLiving] = useState(100);
   const [sliderValueBedRoom, setSliderValueBedRoom] = useState(100);
   const [sliderValueGuest, setSliderValueGuest] = useState(100);
 
   return (
+
+   
     <View style={styles.container}>
-      <ImageBackground
-        source={require("../../../assets/images/background/InsideLights.png")}
-        resizeMode="cover"
-        style={styles.backgroundImg}
-      >
-        <View style={styles.title}>
+ <ImageBackground
+    source={require('../../../assets/images/background/InsideLights.png')}
+    resizeMode='cover'
+    style={styles.backgroundImg}
+  >
+
+<View style={styles.title}>
           <Title name="Inside Lights" />
         </View>
 
@@ -38,149 +34,146 @@ export default function InsideLights({ navigation }) {
           />
         </View>
 
-        {/* <View style={styles.groupButtons}> */}
+  <View style={styles.containerLiving}>
         <GroupButtons
           paragraphName="Living"
           buttonLeftName="On"
           buttonRightName="Off"
         />
-        <View style={styles.shape}>
-          <Text style={styles.text}>{sliderValueLiving}%</Text>
-          <Slider
-            // style={styles.slider}
-            style={{
-              width: 270,
-              position: "absolute",
-              bottom: -20,
-              right: 10,
-            }}
-            minimumValue={0}
-            maximumValue={100}
-            minimumTrackTintColor="#C55656"
-            // maximumTrackTintColor="#A35658"
-            thumbTintColor="#E35658"
-            value={sliderValueLiving}
-            onValueChange={(value) => setSliderValueLiving(value.toFixed(0))}
-          />
-        </View>
-        {/* </View> */}
-
-        {/* <View style={styles.groupButtons}> */}
-
-        <GroupButtons
+        
+      <View style={styles.sliderContainer}>
+        <Text style={styles.sliderText}>{`${sliderValueLiving.toFixed(0)}%`}</Text>
+        <Slider
+          style={styles.slider}
+          minimumValue={0}
+          maximumValue={100}
+          minimumTrackTintColor="#FF5C58"
+          maximumTrackTintColor="#FF8C84"
+          thumbTintColor="#FF5C58"
+          value={sliderValueLiving}
+          onValueChange={(value) => setSliderValueLiving(value)}
+        />
+      </View>
+    </View>
+    
+    {/*BedRoom */}
+    <View style={styles.containerLiving}>
+    <GroupButtons
           paragraphName="BedRoom"
           buttonLeftName="On"
           buttonLeftAction="turnOnBedroomLights"
           buttonRightName="Off"
           buttonRightAction="turnOffBedroomLights"
         />
+        
+      <View style={styles.sliderContainer}>
+        <Text style={styles.sliderText}>{`${sliderValueBedRoom.toFixed(0)}%`}</Text>
+        <Slider
+          style={styles.slider}
+          minimumValue={0}
+          maximumValue={100}
+          minimumTrackTintColor="#FF5C58"
+          maximumTrackTintColor="#FF8C84"
+          thumbTintColor="#FF5C58"
+          value={sliderValueBedRoom}
+          onValueChange={(value) => setSliderValueBedRoom(value)}
+        />
+      </View>
+    </View>
 
-        <View style={styles.shape}>
-          <Text style={styles.text}>{sliderValueBedRoom}%</Text>
-          <Slider
-            style={styles.slider}
-            minimumValue={0}
-            maximumValue={100}
-            minimumTrackTintColor="#C55656"
-            // maximumTrackTintColor="#A35658"
-            thumbTintColor="#E35658"
-            value={sliderValueBedRoom}
-            onValueChange={(value) => setSliderValueBedRoom(value.toFixed(0))}
-          />
-        </View>
-        {/* </View> */}
-
-        {/* <View style={styles.groupButtons}> */}
-        <GroupButtons
-          paragraphName="Kitchen/Guest"
+{/* Guest */}
+    <View style={styles.containerLiving}>
+    <GroupButtons
+          paragraphName="Guest"
           buttonLeftName="On"
           buttonLeftAction="turnOnKitchenLights"
           buttonRightName="Off"
           buttonRightAction="turnOffKitchenLights"
         />
-        <View style={styles.shape}>
-          <Text style={styles.text}>{sliderValueGuest}%</Text>
-          <Slider
-            style={{
-              width: 270,
-              position: "absolute",
-              bottom: -20,
-              right: 10,
-            }}
-            minimumValue={0}
-            maximumValue={100}
-            minimumTrackTintColor="#C55656"
-            // maximumTrackTintColor="#A35658"
-            thumbTintColor="#E35658"
-            value={sliderValueGuest}
-            onValueChange={(value) => setSliderValueGuest(value.toFixed(0))}
-          />
-        </View>
-        {/* </View> */}
-        <View style={styles.backButton}>
+        
+      <View style={styles.sliderContainer}>
+        <Text style={styles.sliderText}>{`${sliderValueGuest.toFixed(0)}%`}</Text>
+        <Slider
+          style={styles.slider}
+          minimumValue={0}
+          maximumValue={100}
+          minimumTrackTintColor="#FF5C58"
+          maximumTrackTintColor="#FF8C84"
+          thumbTintColor="#FF5C58"
+          value={sliderValueGuest}
+          onValueChange={(value) => setSliderValueGuest(value)}
+        />
+      </View>
+    </View>
+
+    <View style={styles.backButton}>
           <DirectionButton name={"←"} link={"Home"} navigation={navigation} />
         </View>
       </ImageBackground>
     </View>
   );
-}
+};
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: "#531225",
-    opacityColor: 0.15,
-    alignItems: "center",
-    justifyContent: "center",
-  },
   backgroundImg: {
     flex: 1,
-    width: "100%",
-    zIndex: 1000,
-    justifyContent: "center",
-    alignItems: "center",
+    width: '100%',
+    justifyContent: 'center',
+    alignItems: 'center',
   },
-  // group:{marginTop:10},
-  group: { marginBottom: -30 },
-  title: {
-    marginTop: 140,
-    marginBottom: -30,
-  },
-  // groupButtons: {
-  //   // marginTop: 50,
-  //   // marginBottom: -35, ///problema la marginBootom la slider, nu mai merge, daca introduc o valoare cu '-' nu mai merge
-  //   marginBottom: -35,
-  //   // borderWidth:2,
-  //   width: "100%",
-  //   justifyContent: "center",
-  //   alignItems: "center",
-  // },
-  slider: {
-    width: 270,
-    position: "absolute",
-    bottom: -20,
-    right: 10,
-  },
-  shape: {
-    marginTop: 15,
-    width: "75%",
-    height: 50,
-    backgroundColor: "rgba(85, 17, 17, 0.5)",
-    borderRadius: 80,
-    borderWidth: 1,
-    borderColor: "#C55656",
-    justifyContent: "center",
-    position: "relative",
-  },
-  text: {
-    color: "#FFDDDD",
-    fontSize: 35,
-    fontWeight: "bold",
-    textAlign: "center",
+  container: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    // padding: 20,
+    backgroundColor: '#531225',
+    opacityColor: 1,
+    },
+    title: {
+      marginTop: 15,
+    },
+  containerLiving: {
+    width: '100%',
+    // height: 250,
+    // justifyContent:'center',
+    alignItems: 'center',
+    // marginTop: -30,
+    // borderWidth: 1,
+    // borderColor: '#C55656',
+
   },
 
-  backButton: {
-    // marginTop: 35,
-    marginBottom: 85,
+  sliderContainer: {
+
+    marginVertical: 15,
+    alignItems: 'center',
+    // justifyContent: 'center',
+    borderWidth: 1,
+    borderRadius: 30,
+    borderColor: '#C55656',
+    backgroundColor: 'rgba(85, 17, 17, 0.5)',
+    height: 50,
+    width: '90%',
+
   },
+  sliderText: {
+    marginTop: 7,
+    fontSize: 30,
+    fontWeight: 'bold',
+    color: '#FFDDDD',  
+  },
+  slider: {
+    width: '80%',
+    // height: 40,
+    top: -14,
+    // bottom: 2,
+    // position: 'absolute',
+  },
+
+  backButton:{
+    marginTop: -15,
+    
+  }
 });
+
+export default CustomSlider;

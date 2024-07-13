@@ -61,7 +61,7 @@ const styles = StyleSheet.create({
   },
   paragraph: {
     fontSize: 30,
-    marginTop: 40,
+    marginTop: 5,
     color: "white",
   },
   buttonRow: {
@@ -76,7 +76,7 @@ const styles = StyleSheet.create({
     borderColor: "#BB6666",
     justifyContent: "center",
     alignItems: "center",
-    marginTop: 20,
+    marginTop: 10,
     opacity: 0.8,
   },
   buttonBoxGradientforOneButton: {

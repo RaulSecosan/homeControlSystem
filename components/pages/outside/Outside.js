@@ -1,5 +1,4 @@
-import { StyleSheet, Text, View, ImageBackground, Button } from "react-native";
-import { LinearGradient } from "expo-linear-gradient";
+import { StyleSheet, View, ImageBackground, SafeAreaView } from "react-native";
 
 import ButtonOriginal from "../../ButtonOriginal";
 import Title from "../../Title";
@@ -9,12 +8,15 @@ import DirectionButton from "../../DirectionButton";
 export default function App({ navigation }) {
   return (
     <View style={styles.container}>
+    {/* <SafeAreaView style={styles.safeArea}> */}
       <ImageBackground
         source={require("../../../assets/images/background/outsideBackground.png")}
         resizeMode="cover"
         style={styles.backgroundImg}
       >
+      <View style={styles.title}>
         <Title name="Outside" />
+      </View>
 
         <GroupButtons
           paragraphName="Main Door"
@@ -43,36 +45,41 @@ export default function App({ navigation }) {
           buttonRightAction="closeGate"
         />
 
+    <View style={styles.backButton}>
         <DirectionButton name={"←"} link={"Home"} navigation={navigation} />
+    </View>
       </ImageBackground>
+    {/* </SafeAreaView> */}
     </View>
   );
 }
 
 const styles = StyleSheet.create({
+  // safeArea:{
+  //   flex:1,
+  // },
   container: {
     flex: 1,
     backgroundColor: "#531225",
-    opacityColor: 0.15,
-    alignItems: "center",
-    justifyContent: "center",
-    zIndex: 1,
+    // opacityColor: 0.15,
+    // alignItems: "center",
+    // justifyContent: "center",
+    // zIndex: 1,
   },
   backgroundImg: {
     flex: 1,
-    width: "100%",
-    zIndex: 1000,
+    // width: "100%",
     justifyContent: "center",
     alignItems: "center",
-  },
+    justifyContent: 'space-around',
 
+  },
+title:{
+  marginTop: 40,
+  marginBottom: -20,
+},
   backButton: {
-    marginTop: 60,
-    width: 165,
-    height: 50,
-    backgroundColor: "#9D5757",
-    justifyContent: "center",
-    alignItems: "center",
-    borderRadius: 30,
+    marginTop: -20,
+    marginBottom: 20,
   },
 });

@@ -1,9 +1,9 @@
 #include <ESP8266WiFi.h>
 #include <ESP8266WebServer.h>
-#include <FirebaseESP8266.h>
+#include <Firebase.h>
 #include <ShiftRegister74HC595.h>
 #include "PageIndex.h"
-
+#include <Firebase.h>
 #include <Adafruit_Sensor.h>
 #include <DHT.h>
 #include <DHT_U.h>
@@ -114,7 +114,7 @@ void handleRoot() {
   server.send(200, "text/html", html);
 }
 
-// Handle temperature and humidity request
+// Handle temperature and humidity request just for html
 void handleTemperatureHumidity() {
   float t = dht.readTemperature();
   float h = dht.readHumidity();
@@ -133,11 +133,11 @@ void checkFire() {
   if (digitalRead(FIRE_SENSOR_PIN) == LOW) {
     tone(BUZZER_PIN, 1000);
     Serial.println("Fire detected!");
-    Firebase.setString(firebaseData, "/fire", "Fire Detected!");
+    Firebase.setString(firebaseData, "/sensorData/fire", "Fire Detected!");
 
   } else {
     noTone(BUZZER_PIN);
-    Firebase.setString(firebaseData, "/fire", "No fire");
+    Firebase.setString(firebaseData, "/sensorData/fire", "No fire");
 
   }
 }
@@ -145,11 +145,11 @@ void checkFire() {
 void checkGas() {
   if (digitalRead(GAS_SENSOR_PIN) == LOW) {
     tone(BUZZER_PIN, 1000);
-    Firebase.setString(firebaseData, "/gas", "Gas Detected!");
+    Firebase.setString(firebaseData, "/sensorData/gas", "Gas Detected!");
     Serial.println("Gas detected!");
   } else {
     noTone(BUZZER_PIN);
-    Firebase.setString(firebaseData, "/gas", "No gas");
+    Firebase.setString(firebaseData, "/sensorData/gas", "No gas");
 
   }
 }
@@ -159,7 +159,11 @@ void checkRain() {
   Serial.print("Rain Sensor Value: ");
   Serial.println(rainValue);
   if (rainValue < 800) {
+      Firebase.setString(firebaseData, "/sensorData/rain", "It's Raining!");
       closeWindows();
+  } else {
+      Firebase.setString(firebaseData, "/sensorData/rain", "No rain");
+
   }
 }
 
@@ -170,6 +174,7 @@ void closeWindows() {
     closeBedRoomWindow();
 }
 
+//Doar pentru HTML
 void handleSensorsStatus() {
   String message = "Status: ";
   
@@ -180,26 +185,17 @@ void handleSensorsStatus() {
 
   if (fireState == LOW) {
     message += "Fire detected! ";
-
-    // if(Firebase.setString(firebaseData, "/sensorData/fire", "Fire Detected!")) {
-    //   Serial.println("Fire updated successfully to firebase: ");
-    // } else {
-    //   Serial.print("Failed to update fire to firebase: ");
-    //   Serial.println(firebaseData.errorReason()); 
-    // }
+    // Firebase.setString(firebaseData, "/sensorData/fire", "Fire Detected!");
 
   } else {
     message += "No fire. ";
-    // if(Firebase.setString(firebaseData, "/sensorData/fire", "No fire")) {
-    //   Serial.println("Fire updated successfully to firebase: ");
-    // } else {
-    //   Serial.print("Failed to update fire to firebase: ");
-    //   Serial.println(firebaseData.errorReason()); 
-    // }
+    // Firebase.setString(firebaseData, "/sensorData/fire", "No fire");
   }
 
   if (gasState == LOW) {
     message += "Gas detected! ";
+    // Firebase.setString(firebaseData, "/sensorData/gas", "Gas");
+
     // Firebase.RTDB.setString(&firebaseData, "/sensorData/gas", "Gas detected!");
     // if(Firebase.setString(firebaseData, "/sensorData/gas", "Gas Detected!")) {
     //   Serial.println("Gas updated successfully to firebase: ");
@@ -209,24 +205,18 @@ void handleSensorsStatus() {
     // }
   } else {
     message += "No gas. ";
-    // if(Firebase.setString(firebaseData, "/sensorData/gas", "No gas")) {
-    //   Serial.println("Gas updated successfully to firebase: ");
-    // } else {
-    //   Serial.print("Failed to update Gas to firebase: ");
-    //   Serial.println(firebaseData.errorReason()); 
-    // }
+    // Firebase.setString(firebaseData, "/sensorData/gas", "No gas");
+
   }
 
   if (rainValue < 800) {
     message += "It's raining. ";
-    // Firebase.RTDB.setString(&firebaseData, "/sensorData/rain", "It's raining.");
-    // if (Firebase.setString(firebaseData, "/sensorData/rain", "It's Raining!")) {
-    //   Serial.println("Rain updated successfully to firebase: ");
-    // } else {
-    //   Serial.print("Failed to update rain to firebase: ");
-    //   Serial.println(firebaseData.errorReason()); 
-    // }
+    // Firebase.setString(firebaseData, "/sensorData/rain", "It's Raining!");
+    closeWindows();
+
   } else {
+    // Firebase.setString(firebaseData, "/sensorData/rain", "No Rain");
+
     // if (Firebase.setString(firebaseData, "/sensorData/rain", "No Rain")) {
     //   Serial.println("Rain updated successfully to firebase: ");
     // } else {
@@ -238,6 +228,8 @@ void handleSensorsStatus() {
 
   if (pirValue == HIGH) {
     message += "Motion Detected!";
+    // Firebase.setString(firebaseData, "/sensorData/motion", "Motion detected");
+
     // if (Firebase.setString(firebaseData, "/sensorData/motion", "Motion Detected!")) {
     //   Serial.println("Motion updated successfully to firebase: ");
     // } else {
@@ -246,12 +238,7 @@ void handleSensorsStatus() {
     // }
   } else {
     message += "No Motion. ";
-    // if (Firebase.setString(firebaseData, "/sensorData/fire", "No motion")) {
-    //   Serial.println("Motion updated successfully to firebase: ");
-    // } else {
-    //   Serial.print("Failed to update motion to firebase: ");
-    //   Serial.println(firebaseData.errorReason()); 
-    // }
+    // Firebase.setString(firebaseData, "/sensorData/motion", "No Motion");
   }
 
   server.send(200, "text/plain", message);
@@ -559,40 +546,37 @@ void checkLightAndMotion() {
   pirValue = digitalRead(PIR_PIN);
   Serial.print("PIR: ");
   Serial.print(pirValue);
+ 
   // Verificăm dacă este întuneric și se detectează mișcare
   if (ldrValue == HIGH && pirValue == HIGH) {
     turnOnHallLed();
-    lastMotionTime = millis();  // Stocăm timpul curent
+    lastMotionTime = millis();  
   }
 
   // Verificăm dacă au trecut 10 secunde de la ultima mișcare detectată
   if (millis() - lastMotionTime > lightOnDuration) {
     turnOffHallLed();
   }
+
+  if (pirValue == HIGH){
+    Firebase.setString(firebaseData, "/sensorData/motion", "Motion Detected!");
+  } else if (pirValue == LOW)
+  {
+    Firebase.setString(firebaseData, "/sensorData/motion", "No Motion");
+  }
+  
 }
 
 void doorLightEvening() {
   ldrValue = digitalRead(LDR_PIN);
-
-  
-  // Verificăm dacă este întuneric și se detectează mișcare
+  // Verificăm dacă este întuneric 
   if (ldrValue == HIGH) {
     turnOnDoorLed();
-  //    if (Firebase.setString(firebaseData, "/sensorData/isDay", "isNight ",ldrValue)) {
-  //   Serial.println("CheckDay updated successfully to firebase: ");
-  // } else {
-  //   Serial.print("Failed to update isDay to firebase: ");
-  //   Serial.println(firebaseData.errorReason()); 
-  // }
+    Firebase.setString(firebaseData, "/sensorData/isDay", "is Night " + String(ldrValue));
 
   } else {
     turnOffDoorLed();
-  //    if (Firebase.setString(firebaseData, "/sensorData/isDay", "isDay ",ldrValue)) {
-  //   Serial.println("CheckDay updated successfully to firebase: ");
-  // } else {
-  //   Serial.print("Failed to update isDay to firebase: ");
-  //   Serial.println(firebaseData.errorReason()); 
-  // }
+    Firebase.setString(firebaseData, "/sensorData/isDay", "is Day " + String(ldrValue));
   }
 }
 
@@ -613,8 +597,8 @@ void displayTemperatureHumidity() {
   Serial.println("°C");
   
   // Trimite datele senzorilor la Firebase
-      Firebase.setString(firebaseData, "/temperature", t);
-      Firebase.setString(firebaseData, "/humidity", h);
+  Firebase.setString(firebaseData, "/sensorData/temperature", t);
+  Firebase.setString(firebaseData, "/sensorData/humidity", h);
 
 
   // if (Firebase.setFloat(firebaseData, "/sensorData/temperature", t)) {
@@ -646,12 +630,110 @@ void stopFan() {
   sr.set(MOTOR_IN2, LOW);
   sr.set(MOTOR_ENABLE, LOW);  // Oprește complet motorul
 }
+FirebaseData fbdo;
+FirebaseData stream;
+
+String parentPath = "/";  
+String childPath[16] = {
+  "/led/garageLed",
+  "/led/guestLed",
+  "/led/doorLed",
+  "/led/bedRoomLed",
+  "/led/hallLed",
+  "/led/livingLed",
+  "/door/guestDoor",
+  "/door/frontDoor",
+  "/door/bedRoomDoor",
+  "/door/garage",
+  "/window/guestWindow",
+  "/window/livingWindow",
+  "/window/bedRoomWindow",
+  "/motor/fan",
+  "/status/message"
+};
+
+// Variabilă pentru a indica dacă datele s-au schimbat
+volatile bool dataChanged = false;
+
+void streamCallback(MultiPathStreamData stream) {
+  size_t numChild = sizeof(childPath) / sizeof(childPath[0]);
+
+  for (size_t i = 0; i < numChild; i++) {
+    if (stream.get(childPath[i])) {
+      String path = stream.dataPath;
+      String value = stream.value.c_str();
+
+      Serial.printf("path: %s, event: %s, type: %s, value: %s%s",
+                    path.c_str(), stream.eventType.c_str(),
+                    stream.type.c_str(), value.c_str(),
+                    i < numChild - 1 ? "\n" : "");
+
+      // Control LED-uri
+      if (path == "/led/garageLed") {
+        value == "on" ? turnOnGarageLed() : turnOffGarageLed();
+      } else if (path == "/led/guestLed") {
+        value == "on" ? turnOnGuestLed() : turnOffGuestLed();
+      } else if (path == "/led/doorLed") {
+        value == "on" ? turnOnDoorLed() : turnOffDoorLed();
+      } else if (path == "/led/bedRoomLed") {
+        value == "on" ? turnOnBedroomLed() : turnOffBedroomLed();
+      } else if (path == "/led/hallLed") {
+        value == "on" ? turnOnHallLed() : turnOffHallLed();
+      } else if (path == "/led/livingLed") {
+        if (value == "on") {
+          turnOnLivingLed1();
+          turnOnLivingLed2();
+        } else {
+          turnOffLivingLed1();
+          turnOffLivingLed2();
+        }
+      }
+
+      // Control uși
+      else if (path == "/door/guestDoor") {
+        value == "open" ? openGuestDoor() : closeGuestDoor();
+      } else if (path == "/door/frontDoor") {
+        value == "open" ? openFrontDoor() : closeFrontDoor();
+      } else if (path == "/door/bedRoomDoor") {
+        value == "open" ? openBedRoomDoor() : closeBedRoomDoor();
+      } else if (path == "/door/garage") {
+        value == "forward" ? moveForward() : moveBackward();
+      }
+
+      // Control ferestre
+      else if (path == "/window/guestWindow") {
+        value == "open" ? openGuestWindow() : closeGuestWindow();
+      } else if (path == "/window/livingWindow") {
+        value == "open" ? openLivingWindow() : closeLivingWindow();
+      } else if (path == "/window/bedRoomWindow") {
+        value == "open" ? openBedRoomWindow() : closeBedRoomWindow();
+      }
+
+      // Control motor
+      else if (path == "/motor/fan") {
+        value == "start" ? startFan() : stopFan();
+      }
+
+      // Status mesaj
+      else if (path == "/status/message") {
+        Serial.println("Status message: " + value);
+      }
+    }
+  }
+  Serial.printf("Received stream payload size: %d (Max. %d)\n\n", stream.payloadLength(), stream.maxPayloadLength());
+  dataChanged = true;
+}
 
 
+void streamTimeoutCallback(bool timeout) {
+  if (timeout) {
+    Serial.println("Stream timed out, resuming...");
+  }
 
-
-
-
+  if (!stream.httpConnected()) {
+    Serial.printf("Error code: %d, reason: %s\n\n", stream.httpCode(), stream.errorReason().c_str());
+  }
+}
 // Setup function
 void setup() {
   Serial.begin(115200);
@@ -673,15 +755,24 @@ void setup() {
   Serial.print("IP address: ");
   Serial.println(WiFi.localIP());
 
-  // firebaseConfig.host = "licentalivedb-default-rtdb.firebaseio.com";
-  // firebaseConfig.api_key = "AIzaSyCVz5625ik6fPC0nNe04JLAAfIwqGz5lZU";
   firebaseConfig.host = FIREBASE_HOST;
   firebaseConfig.signer.tokens.legacy_token = FIREBASE_AUTH;
 
   
+  // Setarea buffer-ului pentru ESP8266
+  fbdo.setBSSLBufferSize(4096, 1024);
+  stream.setBSSLBufferSize(2048, 512);
+
   Firebase.begin(&firebaseConfig, &firebaseAuth);
   Firebase.reconnectWiFi(true);
-  
+
+  // Setarea MultiPath Stream
+if (!Firebase.beginMultiPathStream(stream, parentPath)) {
+    Serial.printf("Stream begin error, %s\n\n", stream.errorReason().c_str());
+  }
+
+  Firebase.setMultiPathStreamCallback(stream, streamCallback, streamTimeoutCallback);
+
   Serial.println("Connected to Firebase");
 
 
@@ -744,7 +835,6 @@ void setup() {
   server.on("/moveBackward", moveBackward);
   
 
-
   // Motor control routes (for L293D motor)
   server.on("/startFan", startFan);
   server.on("/stopFan", stopFan);
@@ -755,18 +845,12 @@ void setup() {
 }
 
 // Main loop
-// Timere pentru senzori și Firebase
+// Timere pentru senzori 
 unsigned long lastSensorReadTime = 0;
 const unsigned long sensorReadInterval = 5000; // 5 secunde
 
-unsigned long lastFirebaseCheckTime = 0;
-const unsigned long firebaseCheckInterval = 1000; // 1 secundă
-
-unsigned long previousMillis3 = 0; // New interval for updating a string
-const long interval3 = 2000; // Interval for updating the string field (2 seconds)
-
 void loop() {
-  // Server și alte funcții
+  // Gestionare server și alte funcții
   server.handleClient();
   updateServoPWM(); 
   stepperTask();
@@ -784,93 +868,14 @@ void loop() {
     checkRain();
   }
 
-  
+  //  dacă datele s-au schimbat
+  if (Firebase.ready() && dataChanged) {
+    dataChanged = false;
+    //Adauga alte actiuni cand datele se schimba
+  }
 
-  // Verificarea Firebase la intervalul definit
-  if (currentTime - lastFirebaseCheckTime >= firebaseCheckInterval) {
-    lastFirebaseCheckTime = currentTime;
+#if !defined(ESP8266) && !defined(ESP32)
+  Firebase.runStream();
+#endif
 
-    if (Firebase.getString(firebaseData, "/led/garageLed")) {
-      String ledState = firebaseData.stringData();
-      ledState == "on" ? turnOnGarageLed() : turnOffGarageLed();
-    }
-
-      if (Firebase.getString(firebaseData, "/led/guestLed")) {
-      String ledState = firebaseData.stringData();
-      ledState == "on" ? turnOnGuestLed() : turnOffGuestLed();
-    }
-
-      if (Firebase.getString(firebaseData, "/led/doorLed")) {
-      String ledState = firebaseData.stringData();
-      ledState == "on" ? turnOnDoorLed() : turnOffDoorLed();
-    }
-
-    if (Firebase.getString(firebaseData, "/led/bedRoomLed")) {
-      String ledState = firebaseData.stringData();
-      ledState == "on" ? turnOnBedroomLed() : turnOffBedroomLed();
-    }
-
-    if (Firebase.getString(firebaseData, "/led/hallLed")) {
-      String ledState = firebaseData.stringData();
-      ledState == "on" ? turnOnHallLed() : turnOffHallLed();
-    }
-
-    if (Firebase.getString(firebaseData, "/led/livingLed")) {
-      String ledState = firebaseData.stringData();
-      if (ledState == "on") {
-        turnOnLivingLed1();
-        turnOnLivingLed2();
-      } else {
-        turnOffLivingLed1();
-        turnOffLivingLed2();
-      }
-    }
-
-    // Verifică și controlează ușile
-    if (Firebase.getString(firebaseData, "/door/guestDoor")) {
-      String doorState = firebaseData.stringData();
-      doorState == "open" ? openGuestDoor() : closeGuestDoor();
-    }
-
-    if (Firebase.getString(firebaseData, "/door/frontDoor")) {
-      String doorState = firebaseData.stringData();
-      doorState == "open" ? openFrontDoor() : closeFrontDoor();
-    }
-
-    if (Firebase.getString(firebaseData, "/door/bedRoomDoor")) {
-      String doorState = firebaseData.stringData();
-      doorState == "open" ? openBedRoomDoor() : closeBedRoomDoor();
-    }
-
-    if (Firebase.getString(firebaseData, "/door/garage")) {
-      String stepperState = firebaseData.stringData();
-      stepperState == "forward" ? moveForward() : moveBackward();
-    }
-
-    // Verifică și controlează ferestrele
-    if (Firebase.getString(firebaseData, "/window/guestWindow")) {
-      String windowState = firebaseData.stringData();
-      windowState == "open" ? openGuestWindow() : closeGuestWindow();
-    }
-
-    if (Firebase.getString(firebaseData, "/window/livingWindow")) {
-      String windowState = firebaseData.stringData();
-      windowState == "open" ? openLivingWindow() : closeLivingWindow();
-    }
-
-    if (Firebase.getString(firebaseData, "/window/bedRoomWindow")) {
-      String windowState = firebaseData.stringData();
-      windowState == "open" ? openBedRoomWindow() : closeBedRoomWindow();
-    }
-
-    // Verifică și controlează motorul
-    if (Firebase.getString(firebaseData, "/motor/fan")) {
-      String fanState = firebaseData.stringData();
-      fanState == "start" ? startFan() : stopFan();
-    } 
-
-    
-   }
 }
-
-

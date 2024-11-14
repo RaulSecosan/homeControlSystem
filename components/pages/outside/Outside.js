@@ -25,24 +25,33 @@ export default function App({ navigation }) {
           buttonRightName="Close"
           buttonRightAction="closeFrontDoor"
         />
-        <GroupButtons
+        {/* <GroupButtons
           paragraphName="Lumini de pe alee"
           buttonLeftName="On"
           buttonRightName="Off"
-        />
+        /> */}
         <GroupButtons
-          paragraphName="Lumini de pe Casa"
+          paragraphName="Lumini de la Intrare"
           buttonLeftName="On"
-          buttonLeftAction="turnOn"
+          buttonLeftAction="turnOnDoorLed"
           buttonRightName="Off"
-          buttonRightAction="turnOff"
+          buttonRightAction="turnOffDoorLed"
         />
+
+        <GroupButtons
+          paragraphName="Lumini de la Garaj"
+          buttonLeftName="On"
+          buttonLeftAction="turnOnGarageLed"
+          buttonRightName="Off"
+          buttonRightAction="turnOffGarageLed"
+        />
+
         <GroupButtons
           paragraphName="Usa garaj"
           buttonLeftName="Open"
-          buttonLeftAction="openGate"
+          buttonLeftAction="openGarageGate"
           buttonRightName="Close"
-          buttonRightAction="closeGate"
+          buttonRightAction="closeGarageGate"
         />
 
     <View style={styles.backButton}>

@@ -2,8 +2,8 @@ import { StyleSheet, Text, View, Pressable } from "react-native";
 import { NavigationContainer } from "@react-navigation/native";
 
 import {
-  turnOn,
-  turnOff,
+  turnOnDoorLed,
+  turnOffDoorLed,
   openFrontDoor,
   closeFrontDoor,
   openGuestDoor,
@@ -16,6 +16,24 @@ import {
   closeGate,
   on,
   off,
+  turnOnGarageLed,
+  turnOffGarageLed,
+  openGarageGate,
+  closeGarageGate,
+  turnOffHallLed,
+  turnOnHallLed,
+  turnOnLivingLed,
+  turnOffLivingLed,
+  turnOnBedroomLed,
+  turnOffBedroomLed,
+  turnOnGuestLed,
+  turnOffGuestLed,
+  openGuestWindow,
+  closeGuestWindow,
+  openBedRoomtWindow,
+  closeBedRoomWindow,
+  openLivingWindow,
+  closeLivingWindow,
 } from "./SensorsCommunication";
 
 export default function ButtonOriginal({
@@ -30,18 +48,58 @@ export default function ButtonOriginal({
     link.length !== 0 ? navigation.navigate(link) : "";
 
     switch (action) {
-      case "turnOn":
-        turnOn();
+      case "turnOnDoorLed":
+        turnOnDoorLed();
         break;
-      case "turnOff":
-        turnOff();
+      case "turnOffDoorLed":
+        turnOffDoorLed();
         break;
+      case "turnOnGarageLed":
+        turnOnGarageLed();
+        break;
+      case "turnOffGarageLed":
+        turnOffGarageLed();
+        break;
+      case "turnOnHallLed":
+        turnOnHallLed();
+        break;
+      case "turnOffHallLed":
+        turnOffHallLed();
+        break;
+      case "turnOnLivingLed":
+        turnOnLivingLed();
+        break;
+      case "turnOffLivingLed":
+        turnOffLivingLed();
+        break;
+      case "turnOnBedRoomLed":
+        turnOnBedroomLed();
+        break;
+      case "turnOffBedRoomLed":
+        turnOffBedroomLed();
+        break;
+
+      case "turnOnGuestLed":
+        turnOnGuestLed();
+        break;
+      case "turnOffGuestLed":
+        turnOffGuestLed();
+        break;
+
+      //Doors
       case "openFrontDoor":
         openFrontDoor();
         break;
       case "closeFrontDoor":
         closeFrontDoor();
         break;
+      case "openGarageGate":
+        openGarageGate();
+        break;
+      case "closeGarageGate":
+        closeGarageGate();
+        break;
+
       case "openGuestDoor":
         openGuestDoor();
         break;
@@ -54,24 +112,27 @@ export default function ButtonOriginal({
       case "closeBedRoomDoor":
         closeBedRoomDoor();
         break;
-      case "openDoor":
-        openDoor();
+
+      //Windows
+      case "openGuestWindow":
+        openGuestWindow();
         break;
-      case "closeDoor":
-        closeDoor();
+      case "closeGuestWindow":
+        closeGuestWindow();
         break;
-      case "openGate":
-        openGate();
+      case "openBedRoomWindow":
+        openBedRoomtWindow();
         break;
-      case "closeGate":
-        closeGate();
+      case "closeBedRoomWindow":
+        closeBedRoomWindow();
         break;
-      case "onn":
-        on();
+      case "openLivingWindow":
+        openLivingWindow();
         break;
-      case "offf":
-        off();
+      case "closeLivingWindow":
+        closeLivingWindow();
         break;
+
       default:
         console.log("ai gresit comanda sau nu a fost inca initializata");
     }

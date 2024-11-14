@@ -1,11 +1,9 @@
 import { StyleSheet, Text, View, Image, Pressable } from "react-native";
 
-import ButtonOriginal from "../../ButtonOriginal";
 import Title from "../../Title";
 import GroupButtons from "../../GroupButtons";
 import DirectionButton from "../../DirectionButton";
 import { OneButton } from "../../GroupButtons";
-import { LinearGradient } from "expo-linear-gradient";
 
 export default function Inside({ navigation }) {
   function pressHandlerSensors() {
@@ -22,7 +20,10 @@ export default function Inside({ navigation }) {
       <GroupButtons
         paragraphName="Hall Lights"
         buttonLeftName="On"
+        buttonLeftAction="turnOnHallLed"
         buttonRightName="Off"
+        buttonRightAction="turnOffHallLed"
+
       />
 
       <View style={styles.insideBox}>

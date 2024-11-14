@@ -1,110 +1,250 @@
-const ESP8266_IP = "http://192.168.3.243";
+import { ref, set } from "firebase/database";
+import { database } from './firebase';
+import { Alert } from 'react-native';
 
-export const turnOn = async () => {
+// LED Control Functions
+export const turnOnDoorLed = async () => {
   try {
-    await fetch(`${ESP8266_IP}/on`);
+    await set(ref(database, '/led/doorLed'), 'on');
   } catch (error) {
-    Alert.alert("Eroare la aprinderea becului");
+    Alert.alert("Eroare la aprinderea becului de la intrare");
   }
 };
 
-export const turnOff = async () => {
+export const turnOffDoorLed = async () => {
   try {
-    await fetch(`${ESP8266_IP}/off`);
+    await set(ref(database, '/led/doorLed'), 'off');
   } catch (error) {
-    Alert.alert("Eroare la stingerea becului");
+    Alert.alert("Eroare la stingerea becului de la intrare");
   }
 };
 
+export const turnOnGarageLed = async () => {
+  try {
+    await set(ref(database, '/led/garageLed'), 'on');
+  } catch (error) {
+    Alert.alert("Eroare la aprinderea becului de la garaj");
+  }
+};
+
+export const turnOffGarageLed = async () => {
+  try {
+    await set(ref(database, '/led/garageLed'), 'off');
+  } catch (error) {
+    Alert.alert("Eroare la stingerea becului de la garaj");
+  }
+};
+
+export const turnOnGuestLed = async () => {
+  try {
+    await set(ref(database, '/led/guestLed'), 'on');
+  } catch (error) {
+    Alert.alert("Eroare la aprinderea becului de la oaspeți");
+  }
+};
+
+export const turnOffGuestLed = async () => {
+  try {
+    await set(ref(database, '/led/guestLed'), 'off');
+  } catch (error) {
+    Alert.alert("Eroare la stingerea becului de la oaspeți");
+  }
+};
+
+export const turnOnBedroomLed = async () => {
+  try {
+    await set(ref(database, '/led/bedRoomLed'), 'on');
+  } catch (error) {
+    Alert.alert("Eroare la aprinderea becului de la dormitor");
+  }
+};
+
+export const turnOffBedroomLed = async () => {
+  try {
+    await set(ref(database, '/led/bedRoomLed'), 'off');
+  } catch (error) {
+    Alert.alert("Eroare la stingerea becului de la dormitor");
+  }
+};
+
+
+
+export const turnOnLivingLed = async () => {
+  try {
+    await set(ref(database, '/led/livingLed'), 'on');
+  } catch (error) {
+    Alert.alert("Eroare la aprinderea becului de la dormitor");
+  }
+};
+
+export const turnOffLivingLed = async () => {
+  try {
+    await set(ref(database, '/led/livingLed'), 'off');
+  } catch (error) {
+    Alert.alert("Eroare la stingerea becului de la dormitor");
+  }
+};
+
+export const turnOnHallLed = async () => {
+  try {
+    await set(ref(database, '/led/hallLed'), 'on');
+  } catch (error) {
+    Alert.alert("Eroare la aprinderea becului de la dormitor");
+  }
+};
+
+export const turnOffHallLed = async () => {
+  try {
+    await set(ref(database, '/led/hallLed'), 'off');
+  } catch (error) {
+    Alert.alert("Eroare la stingerea becului de la dormitor");
+  }
+};
+
+// Door Control Functions
 export const openFrontDoor = async () => {
   try {
-    await fetch(`${ESP8266_IP}/openFrontDoor`);
+    await set(ref(database, '/door/frontDoor'), 'open');
   } catch (error) {
-    Alert.alert("Eroare la deschiderea usii principale");
+    Alert.alert("Eroare la deschiderea ușii principale");
   }
 };
 
 export const closeFrontDoor = async () => {
   try {
-    await fetch(`${ESP8266_IP}/closeFrontDoor`);
+    await set(ref(database, '/door/frontDoor'), 'close');
   } catch (error) {
-    Alert.alert("Eroare la inchiderea usii principale");
+    Alert.alert("Eroare la închiderea ușii principale");
   }
 };
+
+export const openGarageGate = async () => {
+  try {
+    await set(ref(database, '/door/garage'), 'open');
+  } catch (error) {
+    Alert.alert("Eroare la deschiderea ușii principale");
+  }
+};
+
+export const closeGarageGate = async () => {
+  try {
+    await set(ref(database, '/door/garage'), 'close');
+  } catch (error) {
+    Alert.alert("Eroare la închiderea ușii principale");
+  }
+};
+
 export const openGuestDoor = async () => {
   try {
-    await fetch(`${ESP8266_IP}/openGuestDoor`);
+    await set(ref(database, '/door/guestDoor'), 'open');
   } catch (error) {
-    Alert.alert("Eroare la deschiderea usii principale");
+    Alert.alert("Eroare la deschiderea ușii pentru oaspeți");
   }
 };
 
 export const closeGuestDoor = async () => {
   try {
-    await fetch(`${ESP8266_IP}/closeGuestDoor`);
+    await set(ref(database, '/door/guestDoor'), 'close');
   } catch (error) {
-    Alert.alert("Eroare la inchiderea usii principale");
+    Alert.alert("Eroare la închiderea ușii pentru oaspeți");
   }
 };
+
 export const openBedRoomDoor = async () => {
   try {
-    await fetch(`${ESP8266_IP}/openBedRoomDoor`);
+    await set(ref(database, '/door/bedRoomDoor'), 'open');
   } catch (error) {
-    Alert.alert("Eroare la deschiderea usii bedRoom");
+    Alert.alert("Eroare la deschiderea ușii bedRoom");
   }
 };
 
 export const closeBedRoomDoor = async () => {
   try {
-    await fetch(`${ESP8266_IP}/closeBedRoomDoor`);
+    await set(ref(database, '/door/bedRoomDoor'), 'close');
   } catch (error) {
-    Alert.alert("Eroare la inchiderea usii bedRoom");
+    Alert.alert("Eroare la închiderea ușii bedRoom");
   }
 };
 
-export const openDoor = async () => {
+// Window Control Functions
+export const openGuestWindow = async () => {
   try {
-    await fetch(`${ESP8266_IP}/openDoor`);
+    await set(ref(database, '/window/guestWindow'), 'open');
   } catch (error) {
-    Alert.alert("Eroare la deschiderea usii bedRoom");
+    Alert.alert("Eroare la deschiderea ferestrei pentru oaspeți");
   }
 };
 
-export const closeDoor = async () => {
+export const closeGuestWindow = async () => {
   try {
-    await fetch(`${ESP8266_IP}/closeDoor`);
+    await set(ref(database, '/window/guestWindow'), 'close');
   } catch (error) {
-    Alert.alert("Eroare la inchiderea usii bedRoom");
-  }}
-
-export const openGate = async () => {
-  try {
-    await fetch(`${ESP8266_IP}/moveBackward`);
-
-  } catch (error) {
-    Alert.alert("Eroare la deschiderea usii de la garaj");
+    Alert.alert("Eroare la închiderea ferestrei pentru oaspeți");
   }
 };
 
-export const closeGate = async () => {
+export const openBedRoomtWindow = async () => {
   try {
-    await fetch(`${ESP8266_IP}/moveForward`);
-
+    await set(ref(database, '/window/bedRoomWindow'), 'open');
   } catch (error) {
-    Alert.alert("Eroare la inchiderea usii de la garaj");
-  }}
+    Alert.alert("Eroare la deschiderea ferestrei din bedRoom");
+  }
+};
 
-  export const on = async () => {
-    try {
-      await fetch(`${ESP8266_IP}/on`);
-    } catch (error) {
-      Alert.alert("Eroare la deschiderea usii bedRoom");
-    }
-  };
-  
-  export const off = async () => {
-    try {
-      await fetch(`${ESP8266_IP}/off`);
-    } catch (error) {
-      Alert.alert("Eroare la inchiderea usii bedRoom");
-    }}
+export const closeBedRoomWindow = async () => {
+  try {
+    await set(ref(database, '/window/bedRoomWindow'), 'close');
+  } catch (error) {
+    Alert.alert("Eroare la închiderea ferestrei din bedRoom");
+  }
+};
+
+
+export const openLivingWindow = async () => {
+  try {
+    await set(ref(database, '/window/livingWindow'), 'open');
+  } catch (error) {
+    Alert.alert("Eroare la deschiderea ferestrei din bedRoom");
+  }
+};
+
+export const closeLivingWindow = async () => {
+  try {
+    await set(ref(database, '/window/livingWindow'), 'close');
+  } catch (error) {
+    Alert.alert("Eroare la închiderea ferestrei din bedRoom");
+  }
+};
+// Motor Control Functions
+export const startFan = async () => {
+  try {
+    await set(ref(database, '/motor/fan'), 'start');
+  } catch (error) {
+    Alert.alert("Eroare la pornirea ventilatorului");
+  }
+};
+
+export const stopFan = async () => {
+  try {
+    await set(ref(database, '/motor/fan'), 'stop');
+  } catch (error) {
+    Alert.alert("Eroare la oprirea ventilatorului");
+  }
+};
+
+// Function to control garage door using stepper motor
+export const moveForward = async () => {
+  try {
+    await set(ref(database, '/door/garage'), 'forward');
+  } catch (error) {
+    Alert.alert("Eroare la deschiderea ușii de la garaj");
+  }
+};
+
+export const moveBackward = async () => {
+  try {
+    await set(ref(database, '/door/garage'), 'backward');
+  } catch (error) {
+    Alert.alert("Eroare la închiderea ușii de la garaj");
+  }
+};

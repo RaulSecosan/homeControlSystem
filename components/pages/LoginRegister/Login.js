@@ -1,4 +1,3 @@
-
 import {
   View,
   Text,
@@ -9,13 +8,13 @@ import {
   KeyboardAvoidingView,
 } from "react-native";
 import React, { useState } from "react";
-import { FIREBASE_AUTH } from "../../FirebaseConfig";
+import { FIREBASE_AUTH } from "../../FirebaseConfig_neutilizat";
 import {
   createUserWithEmailAndPassword,
   signInWithEmailAndPassword,
 } from "firebase/auth";
 
-const Login = ({navigation}) => {
+const Login = ({ navigation }) => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
@@ -29,8 +28,7 @@ const Login = ({navigation}) => {
         password
       );
       console.log(response);
-      navigation.navigate('Home'); // Navigate to Home page after successful login
-
+      navigation.navigate("Home"); // Navigate to Home page after successful login
     } catch (error) {
       console.log(error);
       alert("Sign in failed " + error.message);
@@ -40,10 +38,8 @@ const Login = ({navigation}) => {
   };
 
   const signUp = async () => {
-    navigation.navigate('SignUp'); // Navigate to Home page after successful login
-
+    navigation.navigate("SignUp"); // Navigate to Home page after successful login
   };
-
 
   return (
     <View style={styles.container}>
@@ -94,6 +90,3 @@ const styles = StyleSheet.create({
     backgroundColor: "#fff",
   },
 });
-
-
-

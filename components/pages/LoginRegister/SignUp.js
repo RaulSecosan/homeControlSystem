@@ -8,7 +8,7 @@ import {
   KeyboardAvoidingView,
 } from "react-native";
 import React, { useState } from "react";
-import { FIREBASE_AUTH } from "../../FirebaseConfig";
+import { FIREBASE_AUTH } from "../../FirebaseConfig_neutilizat";
 import { createUserWithEmailAndPassword } from "firebase/auth";
 
 const SignUp = ({ navigation }) => {

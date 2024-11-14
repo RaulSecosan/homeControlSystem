@@ -28,9 +28,9 @@ const CustomSlider = ({navigation}) => {
           <GroupButtons
             paragraphName="Hall"
             buttonLeftName="On"
-            buttonLeftAction="turnOnHallLights"
+            buttonLeftAction="turnOnHallLed"
             buttonRightName="Off"
-            buttonRightAction="turnOffHallLights"
+            buttonRightAction="turnOffHallLed"
           />
         </View>
 
@@ -38,7 +38,10 @@ const CustomSlider = ({navigation}) => {
         <GroupButtons
           paragraphName="Living"
           buttonLeftName="On"
+          buttonLeftAction="turnOnLivingLed"
           buttonRightName="Off"
+          buttonRightAction="turnOffLivingLed"
+
         />
         
       <View style={styles.sliderContainer}>
@@ -61,9 +64,9 @@ const CustomSlider = ({navigation}) => {
     <GroupButtons
           paragraphName="BedRoom"
           buttonLeftName="On"
-          buttonLeftAction="turnOnBedroomLights"
+          buttonLeftAction="turnOnBedRoomLed"
           buttonRightName="Off"
-          buttonRightAction="turnOffBedroomLights"
+          buttonRightAction="turnOffBedRoomLed"
         />
         
       <View style={styles.sliderContainer}>
@@ -86,9 +89,9 @@ const CustomSlider = ({navigation}) => {
     <GroupButtons
           paragraphName="Guest"
           buttonLeftName="On"
-          buttonLeftAction="turnOnKitchenLights"
+          buttonLeftAction="turnOnGuestLed"
           buttonRightName="Off"
-          buttonRightAction="turnOffKitchenLights"
+          buttonRightAction="turnOffGuestLed"
         />
         
       <View style={styles.sliderContainer}>
@@ -107,7 +110,7 @@ const CustomSlider = ({navigation}) => {
     </View>
 
     <View style={styles.backButton}>
-          <DirectionButton name={"←"} link={"Home"} navigation={navigation} />
+          <DirectionButton name={"←"} link={"Inside"} navigation={navigation} />
         </View>
       </ImageBackground>
     </View>

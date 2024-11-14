@@ -17,44 +17,30 @@ export default function InsideDoors({ navigation }) {
         </View>
 
         <View style={styles.buttonsCointainer}>
-          <GroupButtons
-            paragraphName="Main Door"
-            buttonLeftName="Open"
-            buttonLeftAction="openFrontDoor"
-            buttonRightName="Close"
-            buttonRightAction="closeFrontDoor"
-          />
+            <GroupButtons
+              paragraphName="Main Door"
+              buttonLeftName="Open"
+              buttonLeftAction="openFrontDoor"
+              buttonRightName="Close"
+              buttonRightAction="closeFrontDoor"
+            />
 
-          <GroupButtons
-            paragraphName="Guest Door"
-            buttonLeftName="Open"
-            buttonLeftAction="openGuestDoor"
-            buttonRightName="Close"
-            buttonRightAction="closeGuestDoor"
-          />
+            <GroupButtons
+              paragraphName="Guest Door"
+              buttonLeftName="Open"
+              buttonLeftAction="openGuestDoor"
+              buttonRightName="Close"
+              buttonRightAction="closeGuestDoor"
+            />
 
-          <GroupButtons
-            paragraphName="BedRoom Door"
-            buttonLeftName="Open"
-            buttonLeftAction="openBedRoomDoor"
-            buttonRightName="Close"
-            buttonRightAction="closeBedRoomDoor"
-          />
-
-          <GroupButtons
-            paragraphName="Bedor"
-            buttonLeftName="Open"
-            buttonLeftAction="openDoor"
-            buttonRightName="Close"
-            buttonRightAction="closeDoor"
-          />
-          <GroupButtons
-            paragraphName="Led"
-            buttonLeftName="Open"
-            buttonLeftAction="onn"
-            buttonRightName="Close"
-            buttonRightAction="offf"
-          />
+            <GroupButtons
+              paragraphName="BedRoom Door"
+              buttonLeftName="Open"
+              buttonLeftAction="openBedRoomDoor"
+              buttonRightName="Close"
+              buttonRightAction="closeBedRoomDoor"
+            />
+          
         </View>
 
         <View style={styles.backButton}>
@@ -88,12 +74,14 @@ const styles = StyleSheet.create({
 
   title: {
     marginBottom: 10,
+    top: -80,
   },
   buttonsCointainer: {
-    marginVertical: 20,
+    marginVertical: 30,
   },
 
   backButton: {
     marginTop: 65,
+    bottom: -80
   },
 });

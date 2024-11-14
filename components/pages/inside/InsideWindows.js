@@ -20,9 +20,9 @@ export default function InsideWindows({ navigation }) {
           <GroupButtons
             paragraphName="Living Window"
             buttonLeftName="Open"
-            buttonLeftAction="openLivingRoom"
+            buttonLeftAction="openLivingWindow"
             buttonRightName="Close"
-            buttonRightAction="closeLivingRoom"
+            buttonRightAction="closeLivingWindow"
           />
 
           <GroupButtons
@@ -36,9 +36,9 @@ export default function InsideWindows({ navigation }) {
           <GroupButtons
             paragraphName="BedRoom Window"
             buttonLeftName="Open"
-            buttonLeftAction="openBedroomWindow"
+            buttonLeftAction="openBedRoomWindow"
             buttonRightName="Close"
-            buttonRightAction="closeBedroomWindow"
+            buttonRightAction="closeBedRoomWindow"
           />
         </View>
 

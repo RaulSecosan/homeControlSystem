@@ -1,9 +1,25 @@
 import { StyleSheet, Text, View, ImageBackground, Image } from "react-native";
+import React, { useEffect, useState } from 'react';
+import { ref, onValue } from "firebase/database";
+import { database } from '../../firebase';
 
 import Title from "../../Title";
 import DirectionButton from "../../DirectionButton";
 
 export default function Sensors({ navigation }) {
+  const [sensorData, setSensorData] = useState(null);
+
+  useEffect(() => {
+    const sensorDataRef = ref(database, '/sensorData');
+
+    const unsubscribe = onValue(sensorDataRef, (snapshot) => {
+      setSensorData(snapshot.val());
+    });
+
+    // Clean up listener on component unmount
+    return () => unsubscribe();
+  }, []);
+  
   return (
     <View style={styles.container}>
       <ImageBackground
@@ -12,11 +28,27 @@ export default function Sensors({ navigation }) {
       >
         <Title name="Sensors" />
 
+      <View>
+
+        <View style={styles.sensorDangerGroup}>
         <View style={styles.sensorNameCenter}>
+
           <Text style={styles.sensorName}>Gas</Text>
-          <View style={styles.sensorDetail}>
-            <Text style={styles.sensorDetailName}>It's fine</Text>
+
+          <View style={styles.sensorDangerDetail}>
+            <Text style={styles.sensorDetailName}>{sensorData ? sensorData['gas'] : 'Loading...'}</Text>
           </View>
+
+        </View>     
+
+        <View style={styles.sensorNameCenter}>
+        <Text style={styles.sensorName}>Fire</Text>
+
+          <View style={styles.sensorDangerDetail}>
+            <Text style={styles.sensorDetailName}>{sensorData ? sensorData['fire'] : 'Loading...'}</Text>
+          </View>
+          </View>
+        </View>
         </View>
 
         <View style={styles.sensorNameCenter}>
@@ -26,7 +58,7 @@ export default function Sensors({ navigation }) {
               source={require("../../../assets/images/inside/sensorsTv.png")}
             />
             <View style={styles.sensorDetailTemperature}>
-              <Text style={styles.sensorDetailName}>25°</Text>
+              <Text style={styles.sensorDetailName}>{sensorData ? sensorData['temperature']+'°' : 'Loading...'}</Text>
             </View>
           </View>
         </View>
@@ -70,6 +102,20 @@ const styles = StyleSheet.create({
     color: "white",
     fontSize: 30,
   },
+  sensorDangerGroup:{
+    // display:'flex',
+    flexDirection:'row',
+    gap:50,
+  },
+  sensorDangerDetail: {
+    width: '120%',
+    height: 48,
+    // opacity: 0.8,
+    backgroundColor: "#741638",
+    justifyContent: "center",
+    alignItems: "center",
+    borderRadius: 10,
+  },
   sensorDetail: {
     width: 152,
     height: 48,
@@ -91,7 +137,7 @@ const styles = StyleSheet.create({
   sensorDetailTemperature: {
     position: "absolute",
     top: 60,
-    left: 65,
+    left: 45,
   },
   sensorDetailName: {
     color: "white",

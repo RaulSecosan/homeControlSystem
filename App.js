@@ -11,8 +11,8 @@ import Sensors from "./components/pages/inside/Sensors";
 import InsideLights from "./components/pages/inside/InsideLights";
 import InsideDoors from "./components/pages/inside/InsideDoors";
 import InsideWindows from "./components/pages/inside/InsideWindows";
-import Login from "./components/pages/LoginRegister/Login";
-import SignUp from "./components/pages/LoginRegister/SignUp";
+// import Login from "./components/pages/LoginRegister/Login";
+// import SignUp from "./components/pages/LoginRegister/SignUp";
 const Stack = createNativeStackNavigator();
 
 export default function App() {
@@ -25,8 +25,8 @@ export default function App() {
           initialRouteName="Home"
           screenOptions={{ headerShown: false }}
         >
-          <Stack.Screen name="Login" component={Login} />
-          <Stack.Screen name="SignUp" component={SignUp} />
+          {/* <Stack.Screen name="Login" component={Login} /> */}
+          {/* <Stack.Screen name="SignUp" component={SignUp} /> */}
           <Stack.Screen name="Home" component={Home} />
           <Stack.Screen name="Outside" component={Outside} />
           <Stack.Screen name="Inside" component={Inside} />

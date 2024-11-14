@@ -17,6 +17,7 @@ export default function InsideDoors({ navigation }) {
         </View>
 
         <View style={styles.buttonsCointainer}>
+          <View style={styles.firstButtonCointainer}>
             <GroupButtons
               paragraphName="Main Door"
               buttonLeftName="Open"
@@ -24,7 +25,9 @@ export default function InsideDoors({ navigation }) {
               buttonRightName="Close"
               buttonRightAction="closeFrontDoor"
             />
+          </View>
 
+          <View style={styles.secondButtonCointainer}>
             <GroupButtons
               paragraphName="Guest Door"
               buttonLeftName="Open"
@@ -32,7 +35,9 @@ export default function InsideDoors({ navigation }) {
               buttonRightName="Close"
               buttonRightAction="closeGuestDoor"
             />
+            </View>
 
+            <View style={styles.thirdButtonCointainer}>
             <GroupButtons
               paragraphName="BedRoom Door"
               buttonLeftName="Open"
@@ -40,7 +45,7 @@ export default function InsideDoors({ navigation }) {
               buttonRightName="Close"
               buttonRightAction="closeBedRoomDoor"
             />
-          
+          </View>
         </View>
 
         <View style={styles.backButton}>
@@ -79,7 +84,17 @@ const styles = StyleSheet.create({
   buttonsCointainer: {
     marginVertical: 30,
   },
+  firstButtonCointainer:{
+    top: -60
+  },
 
+  secondButtonCointainer:{
+    top: -10
+  },
+
+  thirdButtonCointainer:{
+    top: 50
+  },
   backButton: {
     marginTop: 65,
     bottom: -80

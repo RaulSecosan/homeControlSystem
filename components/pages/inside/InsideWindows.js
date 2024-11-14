@@ -17,33 +17,43 @@ export default function InsideWindows({ navigation }) {
         </View>
 
         <View style={styles.buttonsCointainer}>
-          <GroupButtons
-            paragraphName="Living Window"
-            buttonLeftName="Open"
-            buttonLeftAction="openLivingWindow"
-            buttonRightName="Close"
-            buttonRightAction="closeLivingWindow"
-          />
+          <View style={styles.firstButtonCointainer}>
+            <GroupButtons
+              paragraphName="Living Window"
+              buttonLeftName="Open"
+              buttonLeftAction="openLivingWindow"
+              buttonRightName="Close"
+              buttonRightAction="closeLivingWindow"
+            />
+          </View>
 
-          <GroupButtons
-            paragraphName="Guest Window"
-            buttonLeftName="Open"
-            buttonLeftAction="openGuestWindow"
-            buttonRightName="Close"
-            buttonRightAction="closeGuestWindow"
-          />
+          <View style={styles.secondButtonCointainer}>
+            <GroupButtons
+              paragraphName="Guest Window"
+              buttonLeftName="Open"
+              buttonLeftAction="openGuestWindow"
+              buttonRightName="Close"
+              buttonRightAction="closeGuestWindow"
+            />
+          </View>
 
-          <GroupButtons
-            paragraphName="BedRoom Window"
-            buttonLeftName="Open"
-            buttonLeftAction="openBedRoomWindow"
-            buttonRightName="Close"
-            buttonRightAction="closeBedRoomWindow"
-          />
+          <View style={styles.thirdButtonCointainer}>
+            <GroupButtons
+              paragraphName="BedRoom Window"
+              buttonLeftName="Open"
+              buttonLeftAction="openBedRoomWindow"
+              buttonRightName="Close"
+              buttonRightAction="closeBedRoomWindow"
+            />
+          </View>
         </View>
 
         <View style={styles.backButton}>
-          <DirectionButton name={"←"} link={"InsideSecondPage"} navigation={navigation} />
+          <DirectionButton
+            name={"←"}
+            link={"InsideSecondPage"}
+            navigation={navigation}
+          />
         </View>
       </ImageBackground>
     </View>
@@ -67,13 +77,27 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   title: {
+    top: -80,
     marginBottom: 10,
   },
-  buttonsCointainer:{
-    marginVertical:20,
+  buttonsCointainer: {
+    marginVertical: 20,
+  },
+
+  firstButtonCointainer: {
+    top: -60,
+  },
+
+  secondButtonCointainer: {
+    top: -10,
+  },
+
+  thirdButtonCointainer: {
+    top: 50,
   },
 
   backButton: {
     marginTop: 65,
+    bottom: -80,
   },
 });

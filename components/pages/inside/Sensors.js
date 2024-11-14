@@ -8,6 +8,8 @@ import DirectionButton from "../../DirectionButton";
 
 export default function Sensors({ navigation }) {
   const [sensorData, setSensorData] = useState(null);
+  const [fireBorderColor, setFireBorderColor] = useState('#741638'); // Initial color (no fire)
+  const [gasBorderColor, setGasBorderColor] = useState('#741638'); // Initial color (no fire)
 
   useEffect(() => {
     const sensorDataRef = ref(database, '/sensorData');
@@ -19,6 +21,37 @@ export default function Sensors({ navigation }) {
     // Clean up listener on component unmount
     return () => unsubscribe();
   }, []);
+
+  useEffect(() => {
+    let fireColorInterval;
+    let gasColorInterval;
+
+    // Fire sensor logic
+    if (sensorData && sensorData['fire'] === 'Fire') {
+      fireColorInterval = setInterval(() => {
+        setFireBorderColor(prevColor => (prevColor === 'orange' ? 'red' : 'orange'));
+      }, 1000);
+    } else {
+      clearInterval(fireColorInterval);
+      setFireBorderColor('#741638'); // Reset to default color (no fire)
+    }
+
+    // Gas sensor logic
+    if (sensorData && sensorData['gas'] === 'Gas') {
+      gasColorInterval = setInterval(() => {
+        setGasBorderColor(prevColor => (prevColor === 'orange' ? 'red' : 'orange'));
+      }, 1000);
+    } else {
+      clearInterval(gasColorInterval);
+      setGasBorderColor('#741638'); // Reset to default color (no gas)
+    }
+
+    // Cleanup the intervals on component unmount or when sensor data changes
+    return () => {
+      clearInterval(fireColorInterval);
+      clearInterval(gasColorInterval);
+    };
+  }, [sensorData]);
   
   return (
     <View style={styles.container}>
@@ -26,30 +59,41 @@ export default function Sensors({ navigation }) {
         source={require("../../../assets/images/background/sensorsBackground.png")}
         style={styles.backgroundImg}
       >
+      <View style={styles.title}>
         <Title name="Sensors" />
+      </View>
 
-      <View>
 
-        <View style={styles.sensorDangerGroup}>
+        <View style={styles.sensorDangerGroupInsideSensors}>
         <View style={styles.sensorNameCenter}>
 
           <Text style={styles.sensorName}>Gas</Text>
 
-          <View style={styles.sensorDangerDetail}>
-            <Text style={styles.sensorDetailName}>{sensorData ? sensorData['gas'] : 'Loading...'}</Text>
+          <View style={[styles.sensorDangerDetail, { borderColor: gasBorderColor }]}>
+          <Text style={styles.sensorDetailName}>{sensorData ? sensorData['gas'] : 'Loading...'}</Text>
           </View>
 
         </View>     
 
+
         <View style={styles.sensorNameCenter}>
         <Text style={styles.sensorName}>Fire</Text>
 
-          <View style={styles.sensorDangerDetail}>
-            <Text style={styles.sensorDetailName}>{sensorData ? sensorData['fire'] : 'Loading...'}</Text>
+        <View style={[styles.sensorDangerDetail, { borderColor: fireBorderColor  }]}>
+        <Text style={styles.sensorDetailName}>{sensorData ? sensorData['fire'] : 'Loading...'}</Text>
           </View>
           </View>
         </View>
-        </View>
+
+        
+
+        <View style={styles.sensorNameCenterMotion}>
+          <Text style={styles.sensorNameMotion}>Motion</Text>
+
+            <View style={styles.sensorDetail}>
+              <Text style={styles.sensorDetailNameMotion}>{sensorData ? sensorData['motion'] : 'Loading...'}</Text>
+            </View>
+          </View>
 
         <View style={styles.sensorNameCenter}>
           <Text style={styles.sensorName}>Temperature</Text>
@@ -59,14 +103,28 @@ export default function Sensors({ navigation }) {
             />
             <View style={styles.sensorDetailTemperature}>
               <Text style={styles.sensorDetailName}>{sensorData ? sensorData['temperature']+'°' : 'Loading...'}</Text>
+              <Text style={styles.sensorDetailHumidity}>{sensorData ? sensorData['humidity']+'%' : 'Loading...'}</Text>
             </View>
           </View>
         </View>
 
-        <View style={styles.sensorNameCenter}>
-          <Text style={styles.sensorName}>Umidity</Text>
-          <View style={styles.sensorDetail}>
-            <Text style={styles.sensorDetailName}>20</Text>
+        <View style={styles.sensorDangerGroup}>
+          <View style={styles.sensorNameCenter}>
+
+            <Text style={styles.sensorName}>Night/Day</Text>
+
+            <View style={styles.sensorDetail}>
+              <Text style={styles.sensorDetailName}>{sensorData ? sensorData['isDay'] : 'Loading...'}</Text>
+            </View>
+
+          </View>     
+
+          <View style={styles.sensorNameCenter}>
+          <Text style={styles.sensorName}>Rain</Text>
+
+            <View style={styles.sensorDetail}>
+              <Text style={styles.sensorDetailName}>{sensorData ? sensorData['rain'] : 'Loading...'}</Text>
+            </View>
           </View>
         </View>
 
@@ -93,7 +151,14 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
   },
+  title:{
+    marginBottom: 20,
+  },
   sensorNameCenter: {
+    alignItems: "center",
+  },
+  sensorNameCenterMotion: {
+    marginTop: -50,
     alignItems: "center",
   },
   sensorName: {
@@ -102,10 +167,21 @@ const styles = StyleSheet.create({
     color: "white",
     fontSize: 30,
   },
-  sensorDangerGroup:{
-    // display:'flex',
+
+  sensorNameMotion: {
+    marginTop: 20,
+    marginBottom: 10,
+    color: "white",
+    fontSize: 28,
+  },
+  sensorDangerGroupInsideSensors:{
     flexDirection:'row',
-    gap:50,
+    gap:200,
+    marginTop: -25,
+  },
+  sensorDangerGroup:{
+    flexDirection:'row',
+    gap:110,
   },
   sensorDangerDetail: {
     width: '120%',
@@ -115,15 +191,15 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
     borderRadius: 10,
+    borderWidth: 4
   },
   sensorDetail: {
-    width: 152,
+    width: '120%',
     height: 48,
-    // opacity: 0.8,
     backgroundColor: "#741638",
     justifyContent: "center",
     alignItems: "center",
-    borderRadius: 30,
+    borderRadius: 10,
   },
 
   sensorDetailTv: {
@@ -136,14 +212,27 @@ const styles = StyleSheet.create({
   },
   sensorDetailTemperature: {
     position: "absolute",
-    top: 60,
-    left: 45,
+    top: 45,
+    left: 50,
   },
   sensorDetailName: {
     color: "white",
-    fontSize: 25,
+    fontSize: 20,
+  },
+
+  sensorDetailNameMotion: {
+    color: "white",
+    fontSize: 19,
+    paddingHorizontal: 10,
+  },
+  sensorDetailHumidity: {
+    color: "white",
+    fontSize: 20,
+    marginLeft: 13,
+    opacity: '0.8'
   },
   backButton: {
-    marginTop: 50,
+    marginTop: 40,
+    marginBottom: -40,
   },
 });

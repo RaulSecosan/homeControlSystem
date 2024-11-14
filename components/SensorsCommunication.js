@@ -166,6 +166,23 @@ export const closeBedRoomDoor = async () => {
   }
 };
 
+//Fan
+export const openLivingFan= async () => {
+  try {
+    await set(ref(database, '/motor/fan'), 'start');
+  } catch (error) {
+    Alert.alert("Eroare la deschiderea ușii bedRoom");
+  }
+};
+
+export const closeLivingFan= async () => {
+  try {
+    await set(ref(database, '/motor/fan'), 'stop');
+  } catch (error) {
+    Alert.alert("Eroare la închiderea ușii bedRoom");
+  }
+};
+
 // Window Control Functions
 export const openGuestWindow = async () => {
   try {

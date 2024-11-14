@@ -34,6 +34,8 @@ import {
   closeBedRoomWindow,
   openLivingWindow,
   closeLivingWindow,
+  openLivingFan,
+  closeLivingFan,
 } from "./SensorsCommunication";
 
 export default function ButtonOriginal({
@@ -132,7 +134,12 @@ export default function ButtonOriginal({
       case "closeLivingWindow":
         closeLivingWindow();
         break;
-
+      case "openLivingFan":
+        openLivingFan();
+        break;
+      case "closeLivingFan":
+        closeLivingFan();
+        break;
       default:
         console.log("ai gresit comanda sau nu a fost inca initializata");
     }

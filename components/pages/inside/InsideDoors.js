@@ -46,6 +46,17 @@ export default function InsideDoors({ navigation }) {
               buttonRightAction="closeBedRoomDoor"
             />
           </View>
+
+          <View style={styles.forthButtonCointainer}>
+            <GroupButtons
+              paragraphName="Living room Fan"
+              buttonLeftName="On"
+              buttonLeftAction="openLivingFan"
+              buttonRightName="Off"
+              buttonRightAction="closeLivingFan"
+            />
+            </View>
+
         </View>
 
         <View style={styles.backButton}>
@@ -79,7 +90,7 @@ const styles = StyleSheet.create({
 
   title: {
     marginBottom: 10,
-    top: -80,
+    top: -50,
   },
   buttonsCointainer: {
     marginVertical: 30,
@@ -95,8 +106,11 @@ const styles = StyleSheet.create({
   thirdButtonCointainer:{
     top: 50
   },
+  forthButtonCointainer:{
+    top: 100
+  },
   backButton: {
     marginTop: 65,
-    bottom: -80
+    bottom: -60
   },
 });

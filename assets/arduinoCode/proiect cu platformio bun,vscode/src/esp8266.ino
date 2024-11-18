@@ -7,6 +7,7 @@
 #include <Adafruit_Sensor.h>
 #include <DHT.h>
 #include <DHT_U.h>
+#include "bipolarstepper.h"
 
 // WiFi credentials
 const char* ssid = "Seco";
@@ -68,6 +69,9 @@ ShiftRegister74HC595<3> sr(dataPin, clockPin, latchPin);
 #define IN2 4
 #define IN3 5
 #define IN4 6
+
+BiPolStepper stepper(2048); // Motor pas cu pas cu 2048 pași
+
 
 //Temperatura
 #define DHTTYPE DHT11
@@ -460,83 +464,37 @@ void updateServoPWM() {
   }
 }
 
-// Functions to handle stepper motor control
-void stepMotor(int step) {
-  switch (step) {
-    case 0:
-      sr.set(IN1, true);
-      sr.set(IN2, false);
-      sr.set(IN3, false);
-      sr.set(IN4, false);
-      break;
-    case 1:
-      sr.set(IN1, false);
-      sr.set(IN2, true);
-      sr.set(IN3, false);
-      sr.set(IN4, false);
-      break;
-    case 2:
-      sr.set(IN1, false);
-      sr.set(IN2, false);
-      sr.set(IN3, true);
-      sr.set(IN4, false);
-      break;
-    case 3:
-      sr.set(IN1, false);
-      sr.set(IN2, false);
-      sr.set(IN3, false);
-      sr.set(IN4, true);
-      break;
-  }
+
+// void deactivateMotor() {
+//   sr.set(IN1, false);
+//   sr.set(IN2, false);
+//   sr.set(IN3, false);
+//   sr.set(IN4, false);
+// }
+void setNewStepperState() {
+  // Actualizăm starea pinii IN1, IN2, IN3 și IN4
+  sr.set(IN1, stepper.state[0]);
+  sr.set(IN2, stepper.state[1]);
+  sr.set(IN3, stepper.state[2]);
+  sr.set(IN4, stepper.state[3]);
+
+  // Trimite datele către shift register
+  sr.updateRegisters();
 }
 
-void deactivateMotor() {
-  sr.set(IN1, false);
-  sr.set(IN2, false);
-  sr.set(IN3, false);
-  sr.set(IN4, false);
+
+void handleForward() {
+  long steps = (200L * 2048L) / 360L; // 200 de grade -> pași
+  stepper.setStepsToMake(steps, true);
+  server.send(200, "text/html", "<h1>Motor moved forward 200 degrees</h1>");
 }
 
-void stepperTask() {
-  if (isRunning && stepsToMove > 0) {
-    unsigned long currentTime = millis();
-    if (currentTime - lastStepperUpdate >= stepperSpeedDelay) {
-      lastStepperUpdate = currentTime;
-      static int currentStep = 0;
-      stepMotor(currentStep);
-      if (direction) {
-        currentStep++;
-        if (currentStep > 3) {
-          currentStep = 0;
-        }
-      } else {
-        currentStep--;
-        if (currentStep < 0) {
-          currentStep = 3;
-        }
-      }
-      stepsToMove--;
-      if (stepsToMove == 0) {
-        isRunning = false;
-        deactivateMotor(); // Deactivate motor when done
-      }
-    }
-  }
+void handleBackward() {
+  long steps = (190L * 2048L) / 360L; // 190 de grade -> pași
+  stepper.setStepsToMake(steps, false);
+  server.send(200, "text/html", "<h1>Motor moved backward 190 degrees</h1>");
 }
 
-void moveForward() {
-  stepsToMove = stepsFor190Degrees;
-  direction = true;
-  isRunning = true;
-  server.send(200, "text/plain", "Moving 190 degrees forward");
-}
-
-void moveBackward() {
-  stepsToMove = stepsFor190Degrees;
-  direction = false;
-  isRunning = true;
-  server.send(200, "text/plain", "Moving 190 degrees backward");
-}
 
 unsigned long lastMotionTime = 0;  // Variabilă pentru a stoca timpul ultimei mișcări detectate
 const unsigned long lightOnDuration = 5000;  // Durata în milisecunde (5 secunde)
@@ -630,110 +588,110 @@ void stopFan() {
   sr.set(MOTOR_IN2, LOW);
   sr.set(MOTOR_ENABLE, LOW);  // Oprește complet motorul
 }
-FirebaseData fbdo;
-FirebaseData stream;
+// FirebaseData fbdo;
+// FirebaseData stream;
 
-String parentPath = "/";  
-String childPath[16] = {
-  "/led/garageLed",
-  "/led/guestLed",
-  "/led/doorLed",
-  "/led/bedRoomLed",
-  "/led/hallLed",
-  "/led/livingLed",
-  "/door/guestDoor",
-  "/door/frontDoor",
-  "/door/bedRoomDoor",
-  "/door/garage",
-  "/window/guestWindow",
-  "/window/livingWindow",
-  "/window/bedRoomWindow",
-  "/motor/fan",
-  "/status/message"
-};
+// String parentPath = "/";  
+// String childPath[16] = {
+//   "/led/garageLed",
+//   "/led/guestLed",
+//   "/led/doorLed",
+//   "/led/bedRoomLed",
+//   "/led/hallLed",
+//   "/led/livingLed",
+//   "/door/guestDoor",
+//   "/door/frontDoor",
+//   "/door/bedRoomDoor",
+//   "/door/garage",
+//   "/window/guestWindow",
+//   "/window/livingWindow",
+//   "/window/bedRoomWindow",
+//   "/motor/fan",
+//   "/status/message"
+// };
 
-// Variabilă pentru a indica dacă datele s-au schimbat
-volatile bool dataChanged = false;
+// // Variabilă pentru a indica dacă datele s-au schimbat
+// volatile bool dataChanged = false;
 
-void streamCallback(MultiPathStreamData stream) {
-  size_t numChild = sizeof(childPath) / sizeof(childPath[0]);
+// void streamCallback(MultiPathStreamData stream) {
+//   size_t numChild = sizeof(childPath) / sizeof(childPath[0]);
 
-  for (size_t i = 0; i < numChild; i++) {
-    if (stream.get(childPath[i])) {
-      String path = stream.dataPath;
-      String value = stream.value.c_str();
+//   for (size_t i = 0; i < numChild; i++) {
+//     if (stream.get(childPath[i])) {
+//       String path = stream.dataPath;
+//       String value = stream.value.c_str();
 
-      Serial.printf("path: %s, event: %s, type: %s, value: %s%s",
-                    path.c_str(), stream.eventType.c_str(),
-                    stream.type.c_str(), value.c_str(),
-                    i < numChild - 1 ? "\n" : "");
+//       Serial.printf("path: %s, event: %s, type: %s, value: %s%s",
+//                     path.c_str(), stream.eventType.c_str(),
+//                     stream.type.c_str(), value.c_str(),
+//                     i < numChild - 1 ? "\n" : "");
 
-      // Control LED-uri
-      if (path == "/led/garageLed") {
-        value == "on" ? turnOnGarageLed() : turnOffGarageLed();
-      } else if (path == "/led/guestLed") {
-        value == "on" ? turnOnGuestLed() : turnOffGuestLed();
-      } else if (path == "/led/doorLed") {
-        value == "on" ? turnOnDoorLed() : turnOffDoorLed();
-      } else if (path == "/led/bedRoomLed") {
-        value == "on" ? turnOnBedroomLed() : turnOffBedroomLed();
-      } else if (path == "/led/hallLed") {
-        value == "on" ? turnOnHallLed() : turnOffHallLed();
-      } else if (path == "/led/livingLed") {
-        if (value == "on") {
-          turnOnLivingLed1();
-          turnOnLivingLed2();
-        } else {
-          turnOffLivingLed1();
-          turnOffLivingLed2();
-        }
-      }
+//       // Control LED-uri
+//       if (path == "/led/garageLed") {
+//         value == "on" ? turnOnGarageLed() : turnOffGarageLed();
+//       } else if (path == "/led/guestLed") {
+//         value == "on" ? turnOnGuestLed() : turnOffGuestLed();
+//       } else if (path == "/led/doorLed") {
+//         value == "on" ? turnOnDoorLed() : turnOffDoorLed();
+//       } else if (path == "/led/bedRoomLed") {
+//         value == "on" ? turnOnBedroomLed() : turnOffBedroomLed();
+//       } else if (path == "/led/hallLed") {
+//         value == "on" ? turnOnHallLed() : turnOffHallLed();
+//       } else if (path == "/led/livingLed") {
+//         if (value == "on") {
+//           turnOnLivingLed1();
+//           turnOnLivingLed2();
+//         } else {
+//           turnOffLivingLed1();
+//           turnOffLivingLed2();
+//         }
+//       }
 
-      // Control uși
-      else if (path == "/door/guestDoor") {
-        value == "open" ? openGuestDoor() : closeGuestDoor();
-      } else if (path == "/door/frontDoor") {
-        value == "open" ? openFrontDoor() : closeFrontDoor();
-      } else if (path == "/door/bedRoomDoor") {
-        value == "open" ? openBedRoomDoor() : closeBedRoomDoor();
-      } else if (path == "/door/garage") {
-        value == "forward" ? moveForward() : moveBackward();
-      }
+//       // Control uși
+//       else if (path == "/door/guestDoor") {
+//         value == "open" ? openGuestDoor() : closeGuestDoor();
+//       } else if (path == "/door/frontDoor") {
+//         value == "open" ? openFrontDoor() : closeFrontDoor();
+//       } else if (path == "/door/bedRoomDoor") {
+//         value == "open" ? openBedRoomDoor() : closeBedRoomDoor();
+//       } else if (path == "/door/garage") {
+//         value == "forward" ? handleForward() : handleBackward();
+//       }
 
-      // Control ferestre
-      else if (path == "/window/guestWindow") {
-        value == "open" ? openGuestWindow() : closeGuestWindow();
-      } else if (path == "/window/livingWindow") {
-        value == "open" ? openLivingWindow() : closeLivingWindow();
-      } else if (path == "/window/bedRoomWindow") {
-        value == "open" ? openBedRoomWindow() : closeBedRoomWindow();
-      }
+//       // Control ferestre
+//       else if (path == "/window/guestWindow") {
+//         value == "open" ? openGuestWindow() : closeGuestWindow();
+//       } else if (path == "/window/livingWindow") {
+//         value == "open" ? openLivingWindow() : closeLivingWindow();
+//       } else if (path == "/window/bedRoomWindow") {
+//         value == "open" ? openBedRoomWindow() : closeBedRoomWindow();
+//       }
 
-      // Control motor
-      else if (path == "/motor/fan") {
-        value == "start" ? startFan() : stopFan();
-      }
+//       // Control motor
+//       else if (path == "/motor/fan") {
+//         value == "start" ? startFan() : stopFan();
+//       }
 
-      // Status mesaj
-      else if (path == "/status/message") {
-        Serial.println("Status message: " + value);
-      }
-    }
-  }
-  Serial.printf("Received stream payload size: %d (Max. %d)\n\n", stream.payloadLength(), stream.maxPayloadLength());
-  dataChanged = true;
-}
+//       // Status mesaj
+//       else if (path == "/status/message") {
+//         Serial.println("Status message: " + value);
+//       }
+//     }
+//   }
+//   Serial.printf("Received stream payload size: %d (Max. %d)\n\n", stream.payloadLength(), stream.maxPayloadLength());
+//   dataChanged = true;
+// }
 
 
-void streamTimeoutCallback(bool timeout) {
-  if (timeout) {
-    Serial.println("Stream timed out, resuming...");
-  }
+// void streamTimeoutCallback(bool timeout) {
+//   if (timeout) {
+//     Serial.println("Stream timed out, resuming...");
+//   }
 
-  if (!stream.httpConnected()) {
-    Serial.printf("Error code: %d, reason: %s\n\n", stream.httpCode(), stream.errorReason().c_str());
-  }
-}
+//   if (!stream.httpConnected()) {
+//     Serial.printf("Error code: %d, reason: %s\n\n", stream.httpCode(), stream.errorReason().c_str());
+//   }
+// }
 // Setup function
 void setup() {
   Serial.begin(115200);
@@ -759,22 +717,24 @@ void setup() {
   firebaseConfig.signer.tokens.legacy_token = FIREBASE_AUTH;
 
   
-  // Setarea buffer-ului pentru ESP8266
-  fbdo.setBSSLBufferSize(4096, 1024);
-  stream.setBSSLBufferSize(2048, 512);
+  // // Setarea buffer-ului pentru ESP8266
+  // fbdo.setBSSLBufferSize(4096, 1024);
+  // stream.setBSSLBufferSize(2048, 512);
 
+
+// ///De aici apare lag-ul la componente, in special la motorul stepper
   Firebase.begin(&firebaseConfig, &firebaseAuth);
   Firebase.reconnectWiFi(true);
 
-  // Setarea MultiPath Stream
-if (!Firebase.beginMultiPathStream(stream, parentPath)) {
-    Serial.printf("Stream begin error, %s\n\n", stream.errorReason().c_str());
-  }
+//   // Setarea MultiPath Stream
+// if (!Firebase.beginMultiPathStream(stream, parentPath)) {
+//     Serial.printf("Stream begin error, %s\n\n", stream.errorReason().c_str());
+//   }
 
-  Firebase.setMultiPathStreamCallback(stream, streamCallback, streamTimeoutCallback);
+//   Firebase.setMultiPathStreamCallback(stream, streamCallback, streamTimeoutCallback);
 
-  Serial.println("Connected to Firebase");
-
+//   Serial.println("Connected to Firebase");
+// ///pana aici e lag
 
   // Initialize servos to initial positions
   setGuestDoorPosition(10);
@@ -831,8 +791,8 @@ if (!Firebase.beginMultiPathStream(stream, parentPath)) {
   server.on("/closeBedRoomWindow", closeBedRoomWindow);
 
   // Stepper motor routes
-  server.on("/moveForward", moveForward);
-  server.on("/moveBackward", moveBackward);
+  server.on("/moveForward", handleForward);
+  server.on("/moveBackward", handleBackward);
   
 
   // Motor control routes (for L293D motor)
@@ -849,11 +809,18 @@ if (!Firebase.beginMultiPathStream(stream, parentPath)) {
 unsigned long lastSensorReadTime = 0;
 const unsigned long sensorReadInterval = 5000; // 5 secunde
 
+unsigned long lastFirebaseTime = 0;
+const unsigned long firebaseInterval = 5000; // 2 secunde
+
 void loop() {
   // Gestionare server și alte funcții
   server.handleClient();
   updateServoPWM(); 
-  stepperTask();
+ stepper.update();
+  if (stepper.isUpdated) {
+    setNewStepperState();
+    stepper.clearUpdated();
+  }
 
   unsigned long currentTime = millis();
 
@@ -863,19 +830,62 @@ void loop() {
     checkLightAndMotion();
     doorLightEvening();
     displayTemperatureHumidity();
-    checkFire();
+    checkFire(); 
     checkGas();
     checkRain();
   }
 
-  //  dacă datele s-au schimbat
-  if (Firebase.ready() && dataChanged) {
-    dataChanged = false;
-    //Adauga alte actiuni cand datele se schimba
+  ////
+    if (currentTime - lastFirebaseTime >= firebaseInterval) {
+        lastFirebaseTime = currentTime;
+        checkFirebaseData();
+    }
+
+
+
+}
+
+
+void checkFirebaseData() {
+     if(Firebase.getString(firebaseData, "/led/garageLed"))
+  {
+    String ledstatus = firebaseData.stringData();
+   Serial.println("Garage LED status: " + ledstatus); // Debugging
+    if(ledstatus == "on"){
+      turnOnGarageLed();
+    } else turnOffGarageLed();
   }
 
-#if !defined(ESP8266) && !defined(ESP32)
-  Firebase.runStream();
-#endif
+  if(Firebase.getString(firebaseData, "/led/doorLed"))
+  {
+    String ledstatus = firebaseData.stringData();
+    if(ledstatus == "on"){
+      turnOnDoorLed();
+    } else turnOffDoorLed();
+  }
 
+  if(Firebase.getString(firebaseData, "/led/guestLed"))
+  {
+    String ledstatus = firebaseData.stringData();
+    if(ledstatus == "on"){
+      turnOnGuestLed();
+    } else turnOffGuestLed();
+  }
+
+
+  if(Firebase.getString(firebaseData, "/door/garage"))
+  {
+    String ledstatus = firebaseData.stringData();
+    if(ledstatus == "open"){
+      handleBackward();
+    } else handleForward();
+  }
+
+  if(Firebase.getString(firebaseData, "/door/guestDoor"))
+  {
+    String ledstatus = firebaseData.stringData();
+    if(ledstatus == "open"){
+      openGuestDoor();
+    } else closeGuestDoor();
+  }
 }

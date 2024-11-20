@@ -18,7 +18,7 @@ const char* password = "secosanpq1";
 // Firebase configuration
 #define FIREBASE_HOST "licentalivedb-default-rtdb.firebaseio.com"
 #define FIREBASE_AUTH "K9re6wdo8C5r860LD0TnPoSAo2I96n1NgMuFP3wJ"
-volatile bool isMotorRunning = false; // Indică dacă motorul este activ
+volatile bool isStepperMotorRunning = false; // Indică dacă motorul este activ
 
 FirebaseData firebaseData;
 FirebaseConfig firebaseConfig;
@@ -586,8 +586,8 @@ void setNewStepperState() {
 
 
 void handleForward() {
-    if (isMotorRunning) return; // Nu permite alte comenzi dacă motorul este activ
-    isMotorRunning = true;
+    if (isStepperMotorRunning) return; // Nu permite alte comenzi dacă motorul este activ
+    isStepperMotorRunning = true;
 
     long steps = (220L * 2048L) / 360L; // 200 de grade -> pași
     stepper.setStepsToMake(steps, true);
@@ -596,16 +596,17 @@ void handleForward() {
     while (stepper.isRunning()) {
         stepper.update();
         setNewStepperState();
-        delay(1); // Delay mic pentru a evita blocarea altor procese
+        // delay(1); // Delay mic pentru a evita blocarea altor procese
+        yield(); // Evită blocarea
+
     }
 
-    isMotorRunning = false; // Motorul a terminat execuția
-    server.send(200, "text/html", "<h1>Motor moved forward 200 degrees</h1>");
+    isStepperMotorRunning = false; // Motorul a terminat execuția
 }
 
 void handleBackward() {
-    if (isMotorRunning) return; // Nu permite alte comenzi dacă motorul este activ
-    isMotorRunning = true;
+    if (isStepperMotorRunning) return; // Nu permite alte comenzi dacă motorul este activ
+    isStepperMotorRunning = true;
 
     long steps = (210L * 2048L) / 360L; // 190 de grade -> pași
     stepper.setStepsToMake(steps, false);
@@ -614,11 +615,12 @@ void handleBackward() {
     while (stepper.isRunning()) {
         stepper.update();
         setNewStepperState();
-        delay(1); // Delay mic pentru a evita blocarea altor procese
+        // delay(1); // Delay mic pentru a evita blocarea altor procese
+        yield(); // Evită blocarea
+
     }
 
-    isMotorRunning = false; // Motorul a terminat execuția
-    server.send(200, "text/html", "<h1>Motor moved backward 190 degrees</h1>");
+    isStepperMotorRunning = false; // Motorul a terminat execuția
 }
 
 

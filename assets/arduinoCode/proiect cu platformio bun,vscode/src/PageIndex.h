@@ -110,6 +110,14 @@ const char MAIN_page[] PROGMEM = R"=====(
   <button onclick="sendRequest('/livingLedOn')">Living Led On</button>
   <button onclick="sendRequest('/livingLedOff')">Living Led Off</button>
 
+  <h2>Buzzer</h2>
+  <button onclick="sendRequest('/onBuzzer')">On Buzzer</button>
+  <button onclick="sendRequest('/OffBuzzer')">Off Buzzer</button>
+
+    <h2>Buzzer mai incet</h2>
+  <button onclick="sendRequest('/onBuzzer1')">On Buzzer</button>
+  <button onclick="sendRequest('/OffBuzzer1')">Off Buzzer</button>
+
   <h2>Stepper Motor</h2>
   <button onclick="sendRequest('/moveForward')">Move Forward 190 Degrees</button>
   <button onclick="sendRequest('/moveBackward')">Move Backward 190 Degrees</button>

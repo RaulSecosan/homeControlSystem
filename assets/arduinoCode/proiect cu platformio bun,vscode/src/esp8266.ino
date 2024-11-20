@@ -27,13 +27,14 @@ ESP8266WebServer server(80);
 
 
 #define LDR_PIN D0  
-#define PIR_PIN D2  
 #define DHT_PIN D1  
+#define PIR_PIN D2  
+
 
 // Pins for 74HC595
 const int dataPin = D5;
 const int clockPin = D6;
-const int latchPin = D7;
+const int latchPin = D8;
 
 // Create ShiftRegister74HC595 object with 2 shift registers
 ShiftRegister74HC595<3> sr(dataPin, clockPin, latchPin);
@@ -79,8 +80,10 @@ DHT dht(DHT_PIN, DHTTYPE);
 #define BUZZER_PIN 22
 
 #define RAIN_SENSOR_PIN A0
-#define FIRE_SENSOR_PIN D4
 #define GAS_SENSOR_PIN D3
+#define FIRE_SENSOR_PIN D4
+
+#define HALL_SENSOR_PIN D7
 
 int ldrValue = 0;
 int pirValue = 0;
@@ -140,46 +143,62 @@ void handleTemperatureHumidity() {
   server.send(200, "application/json", jsonResponse);
 }
 
-void checkFire() {
-  if (digitalRead(FIRE_SENSOR_PIN) == LOW) {
-    // tone(BUZZER_PIN, 1000);
-    activateBuzzer();
-    Serial.println("Fire detected!");
-    Firebase.setString(firebaseData, "/sensorData/fire", "Fire Detected!");
-
-  } else {
-    // noTone(BUZZER_PIN);
-    deactivateBuzzer();
-    Firebase.setString(firebaseData, "/sensorData/fire", "No fire");
-
-  }
-}
 // void checkFire() {
 //   if (digitalRead(FIRE_SENSOR_PIN) == LOW) {
-//     digitalWrite(BUZZER_PIN, HIGH); // Turn on the buzzer
+//     // tone(BUZZER_PIN, 1000);
+//     activateBuzzer();
 //     Serial.println("Fire detected!");
 //     Firebase.setString(firebaseData, "/sensorData/fire", "Fire Detected!");
+
 //   } else {
-//     digitalWrite(BUZZER_PIN, LOW); // Turn off the buzzer
-//     Serial.println("No fire detected.");
+//     // noTone(BUZZER_PIN);
+//     deactivateBuzzer();
 //     Firebase.setString(firebaseData, "/sensorData/fire", "No fire");
+
 //   }
 // }
+void checkFire() {
+    static bool lastFireDetected = false;
 
+    bool currentFireDetected = (digitalRead(FIRE_SENSOR_PIN) == LOW);
 
-void checkGas() {
-  if (digitalRead(GAS_SENSOR_PIN) == LOW) {
-    tone(BUZZER_PIN, 1000);
-    Firebase.setString(firebaseData, "/sensorData/gas", "Gas Detected!");
-    Serial.println("Gas detected!");
-  } else {
-    noTone(BUZZER_PIN);
-    digitalWrite(BUZZER_PIN, LOW);  // Puls pe LOW
-
-    Firebase.setString(firebaseData, "/sensorData/gas", "No gas");
-
-  }
+    if (currentFireDetected != lastFireDetected) {
+        String fireStatus = currentFireDetected ? "Fire Detected!" : "No Fire";
+        Firebase.setString(firebaseData, "/sensorData/fire", fireStatus);
+        lastFireDetected = currentFireDetected;
+        activateBuzzer();
+        Serial.println("Actualizat starea senzorului de foc în Firebase.");
+    }
 }
+
+
+
+// void checkGas() {
+//   if (digitalRead(GAS_SENSOR_PIN) == LOW) {
+//     tone(BUZZER_PIN, 1000);
+//     Firebase.setString(firebaseData, "/sensorData/gas", "Gas Detected!");
+//     Serial.println("Gas detected!");
+//   } else {
+//     noTone(BUZZER_PIN);
+//     digitalWrite(BUZZER_PIN, LOW);  // Puls pe LOW
+
+//     Firebase.setString(firebaseData, "/sensorData/gas", "No gas");
+
+//   }
+// }
+void checkGas() {
+    static bool lastGasDetected = false;
+
+    bool currentGasDetected = (digitalRead(GAS_SENSOR_PIN) == LOW);
+
+    if (currentGasDetected != lastGasDetected) {
+        String gasStatus = currentGasDetected ? "Gas Detected!" : "No Gas";
+        Firebase.setString(firebaseData, "/sensorData/gas", gasStatus);
+        activateBuzzer();
+        lastGasDetected = currentGasDetected;
+    }
+}
+
 
 // void checkGas() {
 //   if (digitalRead(GAS_SENSOR_PIN) == LOW) {
@@ -194,18 +213,37 @@ void checkGas() {
 // }
 
 
-void checkRain() {
-  int rainValue = analogRead(RAIN_SENSOR_PIN);
-  // Serial.print("Rain Sensor Value: ");
-  // Serial.println(rainValue);
-  if (rainValue < 800) {
-      Firebase.setString(firebaseData, "/sensorData/rain", "It's Raining!");
-      closeWindows();
-  } else {
-      Firebase.setString(firebaseData, "/sensorData/rain", "No rain");
+// void checkRain() {
+//   int rainValue = analogRead(RAIN_SENSOR_PIN);
+//   // Serial.print("Rain Sensor Value: ");
+//   // Serial.println(rainValue);
+//   if (rainValue < 800) {
+//       Firebase.setString(firebaseData, "/sensorData/rain", "It's Raining!");
+//       closeWindows();
+//   } else {
+//       Firebase.setString(firebaseData, "/sensorData/rain", "No rain");
 
-  }
+//   }
+// }
+
+void checkRain() {
+    static bool lastRainDetected = false;
+
+    int rainValue = analogRead(RAIN_SENSOR_PIN);
+    bool currentRainDetected = (rainValue < 800);
+
+    if (currentRainDetected != lastRainDetected) {
+        String rainStatus = currentRainDetected ? "It's Raining!" : "No Rain";
+        Firebase.setString(firebaseData, "/sensorData/rain", rainStatus);
+        lastRainDetected = currentRainDetected;
+        Serial.println("Actualizat starea senzorului de ploaie în Firebase.");
+
+        if (currentRainDetected) {
+            closeWindows();
+        }
+    }
 }
+
 
 void closeWindows() {
   Serial.println("Closing windows...");
@@ -615,66 +653,129 @@ void handleBackward() {
 }
 
 
+// unsigned long lastMotionTime = 0;  // Variabilă pentru a stoca timpul ultimei mișcări detectate
+// const unsigned long lightOnDuration = 5000;  // Durata în milisecunde (5 secunde)
+
+// void checkLightAndMotion() {
+//   ldrValue = digitalRead(LDR_PIN);
+//   pirValue = digitalRead(PIR_PIN);
+//   // Serial.print("PIR: ");
+//   // Serial.print(pirValue);
+ 
+//   // Verificăm dacă este întuneric și se detectează mișcare
+//   if (ldrValue == HIGH && pirValue == HIGH) {
+//     turnOnHallLed();
+//     lastMotionTime = millis();  
+//   }
+
+//   // Verificăm dacă au trecut 10 secunde de la ultima mișcare detectată
+//   if (millis() - lastMotionTime > lightOnDuration) {
+//     turnOffHallLed();
+//   }
+
+//   if (pirValue == HIGH){
+//     Firebase.setString(firebaseData, "/sensorData/motion", "Motion Detected!");
+//   } else if (pirValue == LOW)
+//   {
+//     Firebase.setString(firebaseData, "/sensorData/motion", "No Motion");
+//   }
+  
+// }
+
+
 unsigned long lastMotionTime = 0;  // Variabilă pentru a stoca timpul ultimei mișcări detectate
 const unsigned long lightOnDuration = 5000;  // Durata în milisecunde (5 secunde)
 
 void checkLightAndMotion() {
-  ldrValue = digitalRead(LDR_PIN);
-  pirValue = digitalRead(PIR_PIN);
-  // Serial.print("PIR: ");
-  // Serial.print(pirValue);
- 
-  // Verificăm dacă este întuneric și se detectează mișcare
-  if (ldrValue == HIGH && pirValue == HIGH) {
-    turnOnHallLed();
-    lastMotionTime = millis();  
-  }
+    static bool lastMotionDetected = false;
+    static bool lastIsNight = false;
+
+    bool currentMotionDetected = (digitalRead(PIR_PIN) == HIGH);
+    bool currentIsNight = (digitalRead(LDR_PIN) == HIGH);
+
+    if (currentMotionDetected != lastMotionDetected) {
+        String motionStatus = currentMotionDetected ? "Motion Detected!" : "No Motion";
+        Firebase.setString(firebaseData, "/sensorData/motion", motionStatus);
+        lastMotionDetected = currentMotionDetected;
+        Serial.println("Actualizat starea senzorului de mișcare în Firebase.");
+    }
+
+    if (currentIsNight != lastIsNight) {
+        String lightStatus = currentIsNight ? "Night" : "Day";
+        Firebase.setString(firebaseData, "/sensorData/isDay", lightStatus);
+        lastIsNight = currentIsNight;
+        Serial.println("Actualizat starea de lumină (zi/noapte) în Firebase.");
+    }
+
+    if (currentMotionDetected && currentIsNight) {
+        turnOnHallLed();
+        lastMotionTime = millis();  
+    }
 
   // Verificăm dacă au trecut 10 secunde de la ultima mișcare detectată
   if (millis() - lastMotionTime > lightOnDuration) {
     turnOffHallLed();
   }
-
-  if (pirValue == HIGH){
-    Firebase.setString(firebaseData, "/sensorData/motion", "Motion Detected!");
-  } else if (pirValue == LOW)
-  {
-    Firebase.setString(firebaseData, "/sensorData/motion", "No Motion");
-  }
-  
 }
 
-void doorLightEvening() {
-  ldrValue = digitalRead(LDR_PIN);
-  if (ldrValue == HIGH) {
-    turnOnDoorLed();
-    Firebase.setString(firebaseData, "/sensorData/isDay", "is Night " + String(ldrValue));
 
-  } else {
-    turnOffDoorLed();
-    Firebase.setString(firebaseData, "/sensorData/isDay", "is Day " + String(ldrValue));
-  }
-}
+// void doorLightEvening() {
+//   ldrValue = digitalRead(LDR_PIN);
+//   if (ldrValue == HIGH) {
+//     turnOnDoorLed();
+//     Firebase.setString(firebaseData, "/sensorData/isDay", "is Night " + String(ldrValue));
 
-void displayTemperatureHumidity() {
-  float h = dht.readHumidity();
-  float t = dht.readTemperature();
+//   } else {
+//     turnOffDoorLed();
+//     Firebase.setString(firebaseData, "/sensorData/isDay", "is Day " + String(ldrValue));
+//   }
+// }
 
-  // Verificăm dacă citirea a fost validă
-  if (isnan(h) || isnan(t)) {
-    Serial.println("Eroare la citirea DHT11!");
-    return;
-  }
+// void displayTemperatureHumidity() {
+//   float h = dht.readHumidity();
+//   float t = dht.readTemperature();
 
-  // Serial.print("Umiditate: ");
-  // Serial.print(h);
-  // Serial.print("%  Temperatura: ");
-  // Serial.print(t);
-  // Serial.println("°C");
+//   // Verificăm dacă citirea a fost validă
+//   if (isnan(h) || isnan(t)) {
+//     Serial.println("Eroare la citirea DHT11!");
+//     return;
+//   }
+
+//   // Serial.print("Umiditate: ");
+//   // Serial.print(h);
+//   // Serial.print("%  Temperatura: ");
+//   // Serial.print(t);
+//   // Serial.println("°C");
   
-  // Trimite datele senzorilor la Firebase
-  Firebase.setString(firebaseData, "/sensorData/temperature", t);
-  Firebase.setString(firebaseData, "/sensorData/humidity", h);
+//   // Trimite datele senzorilor la Firebase
+//   Firebase.setString(firebaseData, "/sensorData/temperature", t);
+//   Firebase.setString(firebaseData, "/sensorData/humidity", h);
+// }
+void  displayTemperatureHumidity() {
+    static float lastTemperature = -999; // Valoare imposibilă pentru inițializare
+    static float lastHumidity = -999; // Valoare imposibilă pentru inițializare
+
+    float currentTemperature = dht.readTemperature();
+    float currentHumidity = dht.readHumidity();
+
+    // Verificăm dacă citirea senzorului este validă
+    if (isnan(currentTemperature) || isnan(currentHumidity)) {
+        Serial.println("Eroare la citirea senzorului DHT!");
+        return;
+    }
+
+    // Actualizează Firebase doar dacă valorile s-au schimbat
+    if (currentTemperature != lastTemperature) {
+        Firebase.setFloat(firebaseData, "/sensorData/temperature", currentTemperature);
+        lastTemperature = currentTemperature;
+        // Serial.println("Actualizat temperatura în Firebase.");
+    }
+
+    if (currentHumidity != lastHumidity) {
+        Firebase.setFloat(firebaseData, "/sensorData/humidity", currentHumidity);
+        lastHumidity = currentHumidity;
+        // Serial.println("Actualizat umiditatea în Firebase.");
+    }
 }
 
 //Fan
@@ -817,63 +918,80 @@ void streamTimeoutCallback(bool timeout) {
 }
 
 
+// void showFreeHeap() {
+//   int totalRam = 50000; // Aproximativ 50 KB RAM totală (depinde de configurație)
+//   int freeRam = ESP.getFreeHeap(); // Obține memoria RAM liberă
+//   int usedRam = totalRam - freeRam; // Calculează memoria utilizată
+
+//   float freePercentage = ((float)freeRam / totalRam) * 100;
+
+//   String ramStatus = String(freeRam) + " bytes (" + String(freePercentage, 2) + "%)";
+//   Serial.println(ramStatus);
+//   Firebase.setString(firebaseData, "/statusESP8266/ram", ramStatus);
+// }
+
 void showFreeHeap() {
-  int totalRam = 50000; // Aproximativ 50 KB RAM totală (depinde de configurație)
-  int freeRam = ESP.getFreeHeap(); // Obține memoria RAM liberă
-  int usedRam = totalRam - freeRam; // Calculează memoria utilizată
+    static String lastRamStatus = "";
 
-  float freePercentage = ((float)freeRam / totalRam) * 100;
+    int freeRam = ESP.getFreeHeap();
+    int totalRam = 50000; 
+    float freePercentage = ((float)freeRam / totalRam) * 100;
 
-  String ramStatus = String(freeRam) + " bytes (" + String(freePercentage, 2) + "%)";
-  Serial.println(ramStatus);
-  Firebase.setString(firebaseData, "/statusESP8266/ram", ramStatus);
+    String currentRamStatus = String(freeRam) + " bytes (" + String(freePercentage, 2) + "%)";
+
+    if (currentRamStatus != lastRamStatus) {
+        Firebase.setString(firebaseData, "/statusESP8266/ram", currentRamStatus);
+        lastRamStatus = currentRamStatus;
+        // Serial.println("Actualizat starea RAM-ului în Firebase.");
+    }
 }
 
 
+void displayHallSensorState() {
+  int hallState = digitalRead(HALL_SENSOR_PIN); 
+  if (hallState == LOW) {
+    Firebase.setString(firebaseData, "/doorStatus", "closed");
+
+  } else {
+    Firebase.setString(firebaseData, "/doorStatus", "opened");
+
+  }
+}
 
 
 
 void  activateBuzzerManual(int buzzerChannel, int frequency, int duration) {
-  int delayTime = 1000000 / (frequency * 2); // Timpul de întârziere în microsecunde pentru jumătate din perioada semnalului
-  unsigned long startTime = millis();       // Momentul când începe activarea buzzerului
+  int delayTime = 1000000 / (frequency * 2); 
+  unsigned long startTime = millis();      
 
   while (millis() - startTime < duration) {
-    sr.set(buzzerChannel, true);  // Puls pe HIGH prin shift register
-    delayMicroseconds(delayTime); // Întârziere
-    sr.set(buzzerChannel, false); // Puls pe LOW prin shift register
-    delayMicroseconds(delayTime); // Întârziere
+    sr.set(buzzerChannel, true);  
+    delayMicroseconds(delayTime); 
+    sr.set(buzzerChannel, false); 
+    delayMicroseconds(delayTime); 
   }
 }
 
 void deactivateBuzzerManual() {
-  sr.set(BUZZER_PIN, false); // Asigură că pinul este LOW pentru a opri buzzer-ul
+  sr.set(BUZZER_PIN, false); 
 }
 
 
 void activateBuzzer() {
-    // tone(BUZZER_PIN, 1000); // Generează tonul pe pinul buzzer-ului
-            // Serial.println("Activare buzzer");
-             activateBuzzerManual(BUZZER_PIN, 1000, 2000);
-
+   activateBuzzerManual(BUZZER_PIN, 1000, 2000);
 }
 
 void deactivateBuzzer() {
-    // noTone(BUZZER_PIN); // Dezactivează tonul buzzer-ului
-    //             Serial.println("dezactivare buzzer");
-                  deactivateBuzzerManual();         // Dezactivare buzzer
-
+       deactivateBuzzerManual();         
 }
 
 void activateBuzzer1() {
-    tone(BUZZER_PIN, 500); // Generează tonul pe pinul buzzer-ului
-            Serial.println("Activare buzzer");
-
+   activateBuzzerManual(BUZZER_PIN, 500, 2000);
 
 }
 
 void deactivateBuzzer1() {
-    noTone(BUZZER_PIN); // Dezactivează tonul buzzer-ului
-                Serial.println("dezactivare buzzer");
+  sr.set(BUZZER_PIN, false); 
 }
 
 // Setup function
@@ -947,7 +1065,7 @@ if (!Firebase.beginMultiPathStream(stream, parentPath)) {
   // pinMode(BUZZER_PIN, OUTPUT);
   // noTone(BUZZER_PIN); 
   // digitalWrite(BUZZER_PIN, LOW);
-
+  pinMode(HALL_SENSOR_PIN,INPUT_PULLUP); 
    
   pinMode(RAIN_SENSOR_PIN, INPUT);
   pinMode(FIRE_SENSOR_PIN, INPUT);
@@ -1035,10 +1153,11 @@ void loop() {
 
 void readAllSensors() {
     checkLightAndMotion();
-    doorLightEvening();
+    // doorLightEvening();
     displayTemperatureHumidity();
     checkFire();
     checkGas();
     checkRain();
-    showFreeHeap();
+    showFreeHeap();  
+    displayHallSensorState(); 
 }

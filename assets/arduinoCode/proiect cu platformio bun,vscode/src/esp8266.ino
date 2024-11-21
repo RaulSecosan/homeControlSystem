@@ -95,19 +95,17 @@ const int stepsPerRevolution = 2048; // 2048 steps per revolution for 28BYJ-48
 const int stepsFor190Degrees = (stepsPerRevolution * 190) / 360;
 const int stepperSpeedDelay = 5; // Adjust this value to change speed
 
-volatile bool direction = true; // true = forward, false = backward
 volatile bool isRunning = false;
 volatile int stepsToMove = 0;
 unsigned long lastStepperUpdate = 0;
 
 // Variables for servo control
-int guestDoorPosition; // Initial position of the guest door servo
-int frontDoorPosition; // Initial position of the front door servo
-int bedRoomDoorPosition; // Initial position of the bedroom door servo
-
-int guestWindowPosition; // Initial position of the guest window servo
-int bedRoomWindowPosition; // Initial position of the bedroom window servo
-int livingWindowPosition; // Initial position of the living room window servo
+int guestDoorPosition; 
+int frontDoorPosition;
+int bedRoomDoorPosition; 
+int guestWindowPosition; 
+int bedRoomWindowPosition; 
+int livingWindowPosition; 
 unsigned long lastServoUpdate = 0;
 const int pwmFrequency = 50; // Servo PWM frequency in Hz (standard is 50Hz)
 // const int pwmPeriod = 20; // Period in milliseconds (20ms for 50Hz)
@@ -115,10 +113,11 @@ const unsigned long pwmPeriod = 20000; // 20ms în microsecunde
 
 // const int pulseMin = 544; // Minimum pulse width in microseconds
 // const int pulseMax = 2400; // Maximum pulse width in microseconds
+// // 800 2100
 
-const int pulseMin = 544; // Minimum pulse width in microseconds
 
-const int pulseMax = 2440; // Maximum pulse width in microseconds
+
+
 
 bool windowsClosed = false; // Variabilă pentru starea geamurilor
 
@@ -143,20 +142,6 @@ void handleTemperatureHumidity() {
   server.send(200, "application/json", jsonResponse);
 }
 
-// void checkFire() {
-//   if (digitalRead(FIRE_SENSOR_PIN) == LOW) {
-//     // tone(BUZZER_PIN, 1000);
-//     activateBuzzer();
-//     Serial.println("Fire detected!");
-//     Firebase.setString(firebaseData, "/sensorData/fire", "Fire Detected!");
-
-//   } else {
-//     // noTone(BUZZER_PIN);
-//     deactivateBuzzer();
-//     Firebase.setString(firebaseData, "/sensorData/fire", "No fire");
-
-//   }
-// }
 void checkFire() {
     static bool lastFireDetected = false;
 
@@ -172,20 +157,6 @@ void checkFire() {
 }
 
 
-
-// void checkGas() {
-//   if (digitalRead(GAS_SENSOR_PIN) == LOW) {
-//     tone(BUZZER_PIN, 1000);
-//     Firebase.setString(firebaseData, "/sensorData/gas", "Gas Detected!");
-//     Serial.println("Gas detected!");
-//   } else {
-//     noTone(BUZZER_PIN);
-//     digitalWrite(BUZZER_PIN, LOW);  // Puls pe LOW
-
-//     Firebase.setString(firebaseData, "/sensorData/gas", "No gas");
-
-//   }
-// }
 void checkGas() {
     static bool lastGasDetected = false;
 
@@ -199,32 +170,6 @@ void checkGas() {
     }
 }
 
-
-// void checkGas() {
-//   if (digitalRead(GAS_SENSOR_PIN) == LOW) {
-//     digitalWrite(BUZZER_PIN, HIGH); // Turn on the buzzer
-//     Serial.println("Gas detected!");
-//     Firebase.setString(firebaseData, "/sensorData/gas", "Gas Detected!");
-//   } else {
-//     digitalWrite(BUZZER_PIN, LOW); // Turn off the buzzer
-//     Serial.println("No gas detected.");
-//     Firebase.setString(firebaseData, "/sensorData/gas", "No gas");
-//   }
-// }
-
-
-// void checkRain() {
-//   int rainValue = analogRead(RAIN_SENSOR_PIN);
-//   // Serial.print("Rain Sensor Value: ");
-//   // Serial.println(rainValue);
-//   if (rainValue < 800) {
-//       Firebase.setString(firebaseData, "/sensorData/rain", "It's Raining!");
-//       closeWindows();
-//   } else {
-//       Firebase.setString(firebaseData, "/sensorData/rain", "No rain");
-
-//   }
-// }
 
 void checkRain() {
     static bool lastRainDetected = false;
@@ -246,7 +191,7 @@ void checkRain() {
 
 
 void closeWindows() {
-  Serial.println("Closing windows...");
+    Serial.println("Closing windows...");
     closeGuestWindow();
     closeLivingWindow();
     closeBedRoomWindow();
@@ -362,17 +307,22 @@ void turnOffLivingLed2() {
 }
 
 
+//Doors
 void setGuestDoorPosition(int position) {
   guestDoorPosition = position;
 
 }
 
 void openGuestDoor() {
-  setGuestDoorPosition(170); 
+  // setGuestDoorPosition(170); 
+    setServoPosition(GUEST_DOOR, 170);
+
 }
 
 void closeGuestDoor() {
-  setGuestDoorPosition(10);
+  // setGuestDoorPosition(10);
+    setServoPosition(GUEST_DOOR, 20);
+
 }
 
 
@@ -383,11 +333,15 @@ void setFrontDoorPosition(int position) {
 }
 
 void openFrontDoor() {
-  setFrontDoorPosition(140); 
+  // setFrontDoorPosition(140); 
+    setServoPosition(FRONT_DOOR, 140); // Trimite semnal pentru 140°
+    // delay(1000); // Așteaptă 1 secundă pentru a permite mișcarea completă
 }
 
 void closeFrontDoor() {
-  setFrontDoorPosition(15); 
+   setServoPosition(FRONT_DOOR, 20); // Trimite semnal pentru 140°
+    // delay(1000); // Așteaptă 1 secundă pentru a permite mișcarea completă
+  // setFrontDoorPosition(15); 
 }
 
 
@@ -396,73 +350,68 @@ void setBedRoomDoorPosition(int position) {
 }
 
 void openBedRoomDoor() {
-  setBedRoomDoorPosition(5); 
+  // setBedRoomDoorPosition(5); 
+                setServoPosition(BED_ROOM_DOOR, 10);
+
 }
 
 void closeBedRoomDoor() {
-  setBedRoomDoorPosition(145); 
+  // setBedRoomDoorPosition(145); 
+              setServoPosition(BED_ROOM_DOOR, 145);
+
 }
 
 
-// Guest Window
+//Windows
 void setGuestWindowPosition(int position) {
   guestWindowPosition = position;
 }
 
 void openGuestWindow() {
-  setGuestWindowPosition(25);
+  // setGuestWindowPosition(25);
+            setServoPosition(GUEST_WINDOW, 25);
+
 }
 
 void closeGuestWindow() {
-  setGuestWindowPosition(110);
+  // setGuestWindowPosition(110);
+          setServoPosition(GUEST_WINDOW, 125);
+
 }
-// Bed Room Window
+
 void setBedRoomWindowPosition(int position) {
   bedRoomWindowPosition = position;
 }
 
 void openBedRoomWindow() {
-  setBedRoomWindowPosition(130);
+  // setBedRoomWindowPosition(130);
+          setServoPosition(BED_ROOM_WINDOW, 135);
+
 }
 
 void closeBedRoomWindow() {
-  setBedRoomWindowPosition(25);
+  // setBedRoomWindowPosition(25);
+        setServoPosition(BED_ROOM_WINDOW, 30);
+
 }
 
 
-// Living Window
 void setLivingWindowPosition(int position) {
   livingWindowPosition = position;
 }
 
 void openLivingWindow() {
-  setLivingWindowPosition(115);
+  // setLivingWindowPosition(115);
+      setServoPosition(LIVING_WINDOW, 115);
+
 }
 
 void closeLivingWindow() {
-  setLivingWindowPosition(10);
+  // setLivingWindowPosition(10);
+      setServoPosition(LIVING_WINDOW, 10); 
+
 }
-//ASTA E FINAL
-// void updateServoPWM(int channel, int position) {
-//     int pulseWidth = map(position, 0, 180, pulseMin, pulseMax);
 
-//     // Trimite impulsurile PWM doar pentru canalul specific
-//     sr.set(channel, true);
-//     delayMicroseconds(pulseWidth);
-//     sr.set(channel, false);
-//     delayMicroseconds(20000 - pulseWidth); // Completează ciclul de 20ms
-
-//     if( channel == 9){
-//           for (int i = 0; i < 10; i++) {  // Trimite 50 de cicluri PWM (~1 secundă)
-
-//        sr.set(channel, true);
-//         delayMicroseconds(pulseWidth);
-   
-//         sr.set(channel, false);
-//         delayMicroseconds(20000 - pulseWidth); // Completează ciclul de 20ms
-//           }
-//     }
-// }
 
 // void updateServoPWM() {
 //     static int lastGuestDoorPulse = -1;
@@ -522,74 +471,123 @@ void closeLivingWindow() {
 //         lastBedRoomWindowPulse = bedRoomWindowPulse;
 //     }
 // }
-void updateServoPWM() {
-    static unsigned long lastUpdate = 0;
-    const unsigned long updateInterval = 20; // Interval de actualizare în ms
 
-    if (millis() - lastUpdate < updateInterval) {
-        return; // Așteaptă până la următorul interval
-    }
-    lastUpdate = millis();
 
-    // Static variables to store last pulse widths
-    static int lastGuestDoorPulse = -1;
-    static int lastFrontDoorPulse = -1;
-    static int lastBedRoomPulse = -1;
-    static int lastGuestWindowPulse = -1;
-    static int lastLivingWindowPulse = -1;
-    static int lastBedRoomWindowPulse = -1;
+const int pulseMin = 400;  
+const int pulseMax = 2600;
 
-    // Map current positions to PWM pulse widths
-    int guestDoorPulse = map(guestDoorPosition, 0, 180, pulseMin, pulseMax);
-    int frontDoorPulse = map(frontDoorPosition, 0, 180, pulseMin, pulseMax);
-    int bedRoomPulse = map(bedRoomDoorPosition, 0, 180, pulseMin, pulseMax);
-    int guestWindowPulse = map(guestWindowPosition, 0, 180, pulseMin, pulseMax);
-    int livingWindowPulse = map(livingWindowPosition, 0, 180, pulseMin, pulseMax);
-    int bedRoomWindowPulse = map(bedRoomWindowPosition, 0, 180, pulseMin, pulseMax);
+int servoPosition = 0;
 
-    // Update only if the pulse width has changed
-    if (guestDoorPulse != lastGuestDoorPulse) {
-        sr.set(GUEST_DOOR, true);
-        delayMicroseconds(guestDoorPulse);
-        sr.set(GUEST_DOOR, false);
-        lastGuestDoorPulse = guestDoorPulse;
-    }
+// Funcție pentru a genera semnalul PWM
+// void generatePWMSignal(int pin, int pulseWidth, int period) {
+//   sr.set(pin, HIGH);           // Activăm pinul
+//   delayMicroseconds(pulseWidth);
+//   sr.set(pin, LOW);            // Dezactivăm pinul
+//   delayMicroseconds(period - pulseWidth);
+// }
 
-    if (frontDoorPulse != lastFrontDoorPulse) {
-        sr.set(FRONT_DOOR, true);
-        delayMicroseconds(frontDoorPulse);
-        sr.set(FRONT_DOOR, false);
-        lastFrontDoorPulse = frontDoorPulse;
-    }
+// // Funcție pentru a seta poziția servo (0° = închis, 180° = deschis)
+// void setServoPosition(int position) {
+//  int pulseWidth = map(position, 0, 180, pulseMin, pulseMax);
+//   generatePWMSignal(FRONT_DOOR, pulseWidth, pwmPeriod);
+// }
 
-    if (bedRoomPulse != lastBedRoomPulse) {
-        sr.set(BED_ROOM_DOOR, true);
-        delayMicroseconds(bedRoomPulse);
-        sr.set(BED_ROOM_DOOR, false);
-        lastBedRoomPulse = bedRoomPulse;
-    }
+// // Handler pentru a deschide servo (180°)
+// void handleOpen() {
+//   setServoPosition(140); // Setează poziția la 180° (deschis)
+//   server.send(200, "text/plain", "Servo opened");
+// }
 
-    if (guestWindowPulse != lastGuestWindowPulse) {
-        sr.set(GUEST_WINDOW, true);
-        delayMicroseconds(guestWindowPulse);
-        sr.set(GUEST_WINDOW, false);
-        lastGuestWindowPulse = guestWindowPulse;
-    }
+// // Handler pentru a închide servo (0°)
+// void handleClose() {
+//   setServoPosition(15); // Setează poziția la 0° (închis)
+//   server.send(200, "text/plain", "Servo closed");
+// }
 
-    if (livingWindowPulse != lastLivingWindowPulse) {
-        sr.set(LIVING_WINDOW, true);
-        delayMicroseconds(livingWindowPulse);
-        sr.set(LIVING_WINDOW, false);
-        lastLivingWindowPulse = livingWindowPulse;
-    }
+void setServoPosition(int pin, int position) {
+    int pulseWidth = map(position, 0, 180, pulseMin, pulseMax);
+    Serial.print("Setare servo poziție: ");
+    Serial.println(position);
 
-    if (bedRoomWindowPulse != lastBedRoomWindowPulse) {
-        sr.set(BED_ROOM_WINDOW, true);
-        delayMicroseconds(bedRoomWindowPulse);
-        sr.set(BED_ROOM_WINDOW, false);
-        lastBedRoomWindowPulse = bedRoomWindowPulse;
+    // Generăm semnal PWM timp de 1 secundă (50 cicluri la 20 ms fiecare)
+    for (int i = 0; i < 50; i++) {
+        sr.set(pin, HIGH);  // Pin HIGH pentru durata impulsului
+        delayMicroseconds(pulseWidth);
+        sr.set(pin, LOW);   // Pin LOW pentru restul perioadei
+        delayMicroseconds(pwmPeriod - pulseWidth);
     }
 }
+
+
+
+// void updateServoPWM() {
+//     static unsigned long lastUpdate = 0;
+//     const unsigned long updateInterval = 20; // Interval de actualizare în ms
+
+//     if (millis() - lastUpdate < updateInterval) {
+//         return; // Așteaptă până la următorul interval
+//     }
+//     lastUpdate = millis();
+
+//     // Static variables to store last pulse widths
+//     static int lastGuestDoorPulse = -1;
+//     static int lastFrontDoorPulse = -1;
+//     static int lastBedRoomPulse = -1;
+//     static int lastGuestWindowPulse = -1;
+//     static int lastLivingWindowPulse = -1;
+//     static int lastBedRoomWindowPulse = -1;
+
+//     // Map current positions to PWM pulse widths
+//     int guestDoorPulse = map(guestDoorPosition, 0, 180, pulseMin, pulseMax);
+//     int frontDoorPulse = map(frontDoorPosition, 0, 180, pulseMin, pulseMax);
+//     int bedRoomPulse = map(bedRoomDoorPosition, 0, 180, pulseMin, pulseMax);
+//     int guestWindowPulse = map(guestWindowPosition, 0, 180, pulseMin, pulseMax);
+//     int livingWindowPulse = map(livingWindowPosition, 0, 180, pulseMin, pulseMax);
+//     int bedRoomWindowPulse = map(bedRoomWindowPosition, 0, 180, pulseMin, pulseMax);
+
+//     // Update only if the pulse width has changed
+//     if (guestDoorPulse != lastGuestDoorPulse) {
+//         sr.set(GUEST_DOOR, true);
+//         delayMicroseconds(guestDoorPulse);
+//         sr.set(GUEST_DOOR, false);
+//         lastGuestDoorPulse = guestDoorPulse;
+//     }
+
+//     if (frontDoorPulse != lastFrontDoorPulse) {
+//         sr.set(FRONT_DOOR, true);
+//         delayMicroseconds(frontDoorPulse);
+//         sr.set(FRONT_DOOR, false);
+//         lastFrontDoorPulse = frontDoorPulse;
+//     }
+
+//     if (bedRoomPulse != lastBedRoomPulse) {
+//         sr.set(BED_ROOM_DOOR, true);
+//         delayMicroseconds(bedRoomPulse);
+//         sr.set(BED_ROOM_DOOR, false);
+//         lastBedRoomPulse = bedRoomPulse;
+//     }
+
+//     if (guestWindowPulse != lastGuestWindowPulse) {
+//         sr.set(GUEST_WINDOW, true);
+//         delayMicroseconds(guestWindowPulse);
+//         sr.set(GUEST_WINDOW, false);
+//         lastGuestWindowPulse = guestWindowPulse;
+//     }
+
+//     if (livingWindowPulse != lastLivingWindowPulse) {
+//         sr.set(LIVING_WINDOW, true);
+//         delayMicroseconds(livingWindowPulse);
+//         sr.set(LIVING_WINDOW, false);
+//         lastLivingWindowPulse = livingWindowPulse;
+//     }
+
+//     if (bedRoomWindowPulse != lastBedRoomWindowPulse) {
+//         sr.set(BED_ROOM_WINDOW, true);
+//         delayMicroseconds(bedRoomWindowPulse);
+//         sr.set(BED_ROOM_WINDOW, false);
+//         lastBedRoomWindowPulse = bedRoomWindowPulse;
+//     }
+// }
 
 
 
@@ -608,9 +606,6 @@ void setNewStepperState() {
   sr.set(IN2, stepper.state[1]);
   sr.set(IN3, stepper.state[2]);
   sr.set(IN4, stepper.state[3]);
-
-  // Trimite datele către shift register
-  // sr.updateRegisters();
 }
 
 
@@ -625,9 +620,7 @@ void handleForward() {
     while (stepper.isRunning()) {
         stepper.update();
         setNewStepperState();
-        // delay(1); // Delay mic pentru a evita blocarea altor procese
         yield(); // Permite altor procese să ruleze
-
     }
 
     isStepperMotorRunning = false; // Motorul a terminat execuția
@@ -644,43 +637,12 @@ void handleBackward() {
     while (stepper.isRunning()) {
         stepper.update();
         setNewStepperState();
-        // delay(1); // Delay mic pentru a evita blocarea altor procese
         yield(); // Permite altor procese să ruleze
-
     }
 
     isStepperMotorRunning = false; // Motorul a terminat execuția
 }
 
-
-// unsigned long lastMotionTime = 0;  // Variabilă pentru a stoca timpul ultimei mișcări detectate
-// const unsigned long lightOnDuration = 5000;  // Durata în milisecunde (5 secunde)
-
-// void checkLightAndMotion() {
-//   ldrValue = digitalRead(LDR_PIN);
-//   pirValue = digitalRead(PIR_PIN);
-//   // Serial.print("PIR: ");
-//   // Serial.print(pirValue);
- 
-//   // Verificăm dacă este întuneric și se detectează mișcare
-//   if (ldrValue == HIGH && pirValue == HIGH) {
-//     turnOnHallLed();
-//     lastMotionTime = millis();  
-//   }
-
-//   // Verificăm dacă au trecut 10 secunde de la ultima mișcare detectată
-//   if (millis() - lastMotionTime > lightOnDuration) {
-//     turnOffHallLed();
-//   }
-
-//   if (pirValue == HIGH){
-//     Firebase.setString(firebaseData, "/sensorData/motion", "Motion Detected!");
-//   } else if (pirValue == LOW)
-//   {
-//     Firebase.setString(firebaseData, "/sensorData/motion", "No Motion");
-//   }
-  
-// }
 
 
 unsigned long lastMotionTime = 0;  // Variabilă pentru a stoca timpul ultimei mișcări detectate
@@ -718,39 +680,6 @@ void checkLightAndMotion() {
   }
 }
 
-
-// void doorLightEvening() {
-//   ldrValue = digitalRead(LDR_PIN);
-//   if (ldrValue == HIGH) {
-//     turnOnDoorLed();
-//     Firebase.setString(firebaseData, "/sensorData/isDay", "is Night " + String(ldrValue));
-
-//   } else {
-//     turnOffDoorLed();
-//     Firebase.setString(firebaseData, "/sensorData/isDay", "is Day " + String(ldrValue));
-//   }
-// }
-
-// void displayTemperatureHumidity() {
-//   float h = dht.readHumidity();
-//   float t = dht.readTemperature();
-
-//   // Verificăm dacă citirea a fost validă
-//   if (isnan(h) || isnan(t)) {
-//     Serial.println("Eroare la citirea DHT11!");
-//     return;
-//   }
-
-//   // Serial.print("Umiditate: ");
-//   // Serial.print(h);
-//   // Serial.print("%  Temperatura: ");
-//   // Serial.print(t);
-//   // Serial.println("°C");
-  
-//   // Trimite datele senzorilor la Firebase
-//   Firebase.setString(firebaseData, "/sensorData/temperature", t);
-//   Firebase.setString(firebaseData, "/sensorData/humidity", h);
-// }
 void  displayTemperatureHumidity() {
     static float lastTemperature = -999; // Valoare imposibilă pentru inițializare
     static float lastHumidity = -999; // Valoare imposibilă pentru inițializare
@@ -768,13 +697,11 @@ void  displayTemperatureHumidity() {
     if (currentTemperature != lastTemperature) {
         Firebase.setFloat(firebaseData, "/sensorData/temperature", currentTemperature);
         lastTemperature = currentTemperature;
-        // Serial.println("Actualizat temperatura în Firebase.");
     }
 
     if (currentHumidity != lastHumidity) {
         Firebase.setFloat(firebaseData, "/sensorData/humidity", currentHumidity);
         lastHumidity = currentHumidity;
-        // Serial.println("Actualizat umiditatea în Firebase.");
     }
 }
 
@@ -865,6 +792,8 @@ void streamCallback(MultiPathStreamData stream) {
                 value == "open" ? openGuestDoor() : closeGuestDoor();
             } else if (path == "/door/frontDoor") {
                 value == "open" ? openFrontDoor() : closeFrontDoor();
+                  //  value == "open" ? handleOpen() : handleClose();
+
             } else if (path == "/door/bedRoomDoor") {
                 value == "open" ? openBedRoomDoor() : closeBedRoomDoor();
             } else if (path == "/door/garage") {
@@ -917,18 +846,6 @@ void streamTimeoutCallback(bool timeout) {
   }
 }
 
-
-// void showFreeHeap() {
-//   int totalRam = 50000; // Aproximativ 50 KB RAM totală (depinde de configurație)
-//   int freeRam = ESP.getFreeHeap(); // Obține memoria RAM liberă
-//   int usedRam = totalRam - freeRam; // Calculează memoria utilizată
-
-//   float freePercentage = ((float)freeRam / totalRam) * 100;
-
-//   String ramStatus = String(freeRam) + " bytes (" + String(freePercentage, 2) + "%)";
-//   Serial.println(ramStatus);
-//   Firebase.setString(firebaseData, "/statusESP8266/ram", ramStatus);
-// }
 
 void showFreeHeap() {
     static String lastRamStatus = "";
@@ -1046,7 +963,12 @@ if (!Firebase.beginMultiPathStream(stream, parentPath)) {
 
   Serial.println("Connected to Firebase");
 
-  
+ String ipAddress = WiFi.localIP().toString();
+  if (Firebase.setString(firebaseData, "/statusESP8266/IP", ipAddress)) {
+    Serial.println("IP address uploaded to Firebase: " + ipAddress);
+  } else {
+    Serial.println("Failed to upload IP address to Firebase: " + firebaseData.errorReason());
+  }
 ///pana aici e lag
 
   // Initialize servos to initial positions
@@ -1135,7 +1057,8 @@ void loop() {
   // ESP.wdtFeed(); // Resetează watchdog-ul (am inteles ca e pt buclele lungi ca sa nu se mai dea reset)
 
   server.handleClient();
-  updateServoPWM(); 
+  // updateServoPWM(); 
+
 
   stepper.update();
   if (stepper.isUpdated) {

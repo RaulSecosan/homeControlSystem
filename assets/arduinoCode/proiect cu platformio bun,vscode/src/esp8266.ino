@@ -79,8 +79,8 @@ DHT dht(DHT_PIN, DHTTYPE);
 // #define BUZZER_PIN D8
 #define BUZZER_PIN 22
 
-#define RAIN_SENSOR_PIN A0
-#define GAS_SENSOR_PIN D3
+#define RAIN_SENSOR_PIN D3
+#define GAS_SENSOR_PIN A0
 #define FIRE_SENSOR_PIN D4
 
 #define HALL_SENSOR_PIN D7
@@ -113,7 +113,6 @@ const unsigned long pwmPeriod = 20000; // 20ms în microsecunde
 
 // const int pulseMin = 544; // Minimum pulse width in microseconds
 // const int pulseMax = 2400; // Maximum pulse width in microseconds
-// // 800 2100
 
 
 
@@ -157,37 +156,46 @@ void checkFire() {
 }
 
 
-void checkGas() {
-    static bool lastGasDetected = false;
-
-    bool currentGasDetected = (digitalRead(GAS_SENSOR_PIN) == LOW);
-
-    if (currentGasDetected != lastGasDetected) {
-        String gasStatus = currentGasDetected ? "Gas Detected!" : "No Gas";
-        Firebase.setString(firebaseData, "/sensorData/gas", gasStatus);
-        activateBuzzer();
-        lastGasDetected = currentGasDetected;
-    }
-}
-
-
 void checkRain() {
     static bool lastRainDetected = false;
 
-    int rainValue = analogRead(RAIN_SENSOR_PIN);
-    bool currentRainDetected = (rainValue < 800);
+    bool currentRainDetected = (digitalRead(RAIN_SENSOR_PIN) == LOW); // LOW semnifică ploaie
 
     if (currentRainDetected != lastRainDetected) {
         String rainStatus = currentRainDetected ? "It's Raining!" : "No Rain";
         Firebase.setString(firebaseData, "/sensorData/rain", rainStatus);
-        lastRainDetected = currentRainDetected;
-        Serial.println("Actualizat starea senzorului de ploaie în Firebase.");
 
-        if (currentRainDetected) {
-            closeWindows();
+        lastRainDetected = currentRainDetected;
+    }
+
+    if (currentRainDetected) {
+        closeWindows();
+    }
+}
+
+
+
+void checkGas() {
+    static bool lastGasDetected = false;
+
+    int gasValue = analogRead(GAS_SENSOR_PIN); 
+    bool currentGasDetected = (gasValue > 900); 
+
+    if (currentGasDetected != lastGasDetected) {
+        String gasStatus = currentGasDetected ? "Gas Detected!" : "No Gas";
+        Firebase.setString(firebaseData, "/sensorData/gas", gasStatus);
+        Firebase.setString(firebaseData, "/sensorData/gas/gasValue", gasValue);
+
+        lastGasDetected = currentGasDetected;
+
+        if (currentGasDetected) {
+            // activateBuzzer(); 
+            Serial.println("Buzzzz Gas");
+            
         }
     }
 }
+
 
 
 void closeWindows() {
@@ -202,8 +210,8 @@ void handleSensorsStatus() {
   String message = "Status: ";
   
   int fireState = digitalRead(FIRE_SENSOR_PIN);
-  int gasState = digitalRead(GAS_SENSOR_PIN);
-  int rainValue = analogRead(RAIN_SENSOR_PIN);
+  int gasState = analogRead(GAS_SENSOR_PIN);
+  int rainValue = digitalRead(RAIN_SENSOR_PIN);
   int pirValue = digitalRead(PIR_PIN);
 
   if (fireState == LOW) {
@@ -212,21 +220,23 @@ void handleSensorsStatus() {
   } else {
     message += "No fire. ";
   }
+ message += "Gas Value: " + String(gasState) + "\n";
+    message += "Rain Value: " + String(rainValue) + "\n";
 
-  if (gasState == LOW) {
-    message += "Gas detected! ";
+  // if (gasState == LOW) {
+  //   message += "Gas detected! ";
 
-  } else {
-    message += "No gas. ";
+  // } else {
+  //   message += "No gas. ";
 
-  }
+  // }
 
-  if (rainValue < 800) {
-    message += "It's raining. ";
+  // if (rainValue < 800) {
+  //   message += "It's raining. ";
 
-  } else {
-    message += "No rain. ";
-  }
+  // } else {
+  //   message += "No rain. ";
+  // }
 
   if (pirValue == HIGH) {
     message += "Motion Detected!";
@@ -351,13 +361,13 @@ void setBedRoomDoorPosition(int position) {
 
 void openBedRoomDoor() {
   // setBedRoomDoorPosition(5); 
-                setServoPosition(BED_ROOM_DOOR, 10);
+                setServoPosition(BED_ROOM_DOOR, 20);
 
 }
 
 void closeBedRoomDoor() {
   // setBedRoomDoorPosition(145); 
-              setServoPosition(BED_ROOM_DOOR, 145);
+              setServoPosition(BED_ROOM_DOOR, 150);
 
 }
 
@@ -375,7 +385,7 @@ void openGuestWindow() {
 
 void closeGuestWindow() {
   // setGuestWindowPosition(110);
-          setServoPosition(GUEST_WINDOW, 125);
+          setServoPosition(GUEST_WINDOW, 104);
 
 }
 
@@ -391,7 +401,7 @@ void openBedRoomWindow() {
 
 void closeBedRoomWindow() {
   // setBedRoomWindowPosition(25);
-        setServoPosition(BED_ROOM_WINDOW, 30);
+        setServoPosition(BED_ROOM_WINDOW, 28);
 
 }
 
@@ -402,107 +412,19 @@ void setLivingWindowPosition(int position) {
 
 void openLivingWindow() {
   // setLivingWindowPosition(115);
-      setServoPosition(LIVING_WINDOW, 115);
+      setServoPosition(LIVING_WINDOW, 110);
 
 }
 
 void closeLivingWindow() {
   // setLivingWindowPosition(10);
-      setServoPosition(LIVING_WINDOW, 10); 
+      setServoPosition(LIVING_WINDOW, 12); 
 
 }
-
-
-// void updateServoPWM() {
-//     static int lastGuestDoorPulse = -1;
-//     static int lastFrontDoorPulse = -1;
-//     static int lastBedRoomPulse = -1;
-//     static int lastGuestWindowPulse = -1;
-//     static int lastLivingWindowPulse = -1;
-//     static int lastBedRoomWindowPulse = -1;
-
-//     int guestDoorPulse = map(guestDoorPosition, 0, 180, pulseMin, pulseMax);
-//     int frontDoorPulse = map(frontDoorPosition, 0, 180, pulseMin, pulseMax);
-//     int bedRoomPulse = map(bedRoomDoorPosition, 0, 180, pulseMin, pulseMax);
-//     int guestWindowPulse = map(guestWindowPosition, 0, 180, pulseMin, pulseMax);
-//     int livingWindowPulse = map(livingWindowPosition, 0, 180, pulseMin, pulseMax);
-//     int bedRoomWindowPulse = map(bedRoomWindowPosition, 0, 180, pulseMin, pulseMax);
-
-//     // Trimite impulsurile PWM doar dacă poziția s-a schimbat
-//     if (guestDoorPulse != lastGuestDoorPulse) {
-//         sr.set(GUEST_DOOR, true);
-//         delayMicroseconds(guestDoorPulse);
-//         sr.set(GUEST_DOOR, false);
-//         lastGuestDoorPulse = guestDoorPulse;
-//     }
-
-//     if (frontDoorPulse != lastFrontDoorPulse) {
-//         sr.set(FRONT_DOOR, true);
-//         delayMicroseconds(frontDoorPulse);
-//         sr.set(FRONT_DOOR, false);
-//         lastFrontDoorPulse = frontDoorPulse;
-//     }
-
-//     if (bedRoomPulse != lastBedRoomPulse) {
-//         sr.set(BED_ROOM_DOOR, true);
-//         delayMicroseconds(bedRoomPulse);
-//         sr.set(BED_ROOM_DOOR, false);
-//         lastBedRoomPulse = bedRoomPulse;
-//     }
-
-//     if (guestWindowPulse != lastGuestWindowPulse) {
-//         sr.set(GUEST_WINDOW, true);
-//         delayMicroseconds(guestWindowPulse);
-//         sr.set(GUEST_WINDOW, false);
-//         lastGuestWindowPulse = guestWindowPulse;
-//     }
-
-//     if (livingWindowPulse != lastLivingWindowPulse) {
-//         sr.set(LIVING_WINDOW, true);
-//         delayMicroseconds(livingWindowPulse);
-//         sr.set(LIVING_WINDOW, false);
-//         lastLivingWindowPulse = livingWindowPulse;
-//     }
-
-//     if (bedRoomWindowPulse != lastBedRoomWindowPulse) {
-//         sr.set(BED_ROOM_WINDOW, true);
-//         delayMicroseconds(bedRoomWindowPulse);
-//         sr.set(BED_ROOM_WINDOW, false);
-//         lastBedRoomWindowPulse = bedRoomWindowPulse;
-//     }
-// }
-
 
 const int pulseMin = 400;  
 const int pulseMax = 2600;
 
-int servoPosition = 0;
-
-// Funcție pentru a genera semnalul PWM
-// void generatePWMSignal(int pin, int pulseWidth, int period) {
-//   sr.set(pin, HIGH);           // Activăm pinul
-//   delayMicroseconds(pulseWidth);
-//   sr.set(pin, LOW);            // Dezactivăm pinul
-//   delayMicroseconds(period - pulseWidth);
-// }
-
-// // Funcție pentru a seta poziția servo (0° = închis, 180° = deschis)
-// void setServoPosition(int position) {
-//  int pulseWidth = map(position, 0, 180, pulseMin, pulseMax);
-//   generatePWMSignal(FRONT_DOOR, pulseWidth, pwmPeriod);
-// }
-
-// // Handler pentru a deschide servo (180°)
-// void handleOpen() {
-//   setServoPosition(140); // Setează poziția la 180° (deschis)
-//   server.send(200, "text/plain", "Servo opened");
-// }
-
-// // Handler pentru a închide servo (0°)
-// void handleClose() {
-//   setServoPosition(15); // Setează poziția la 0° (închis)
-//   server.send(200, "text/plain", "Servo closed");
-// }
 
 void setServoPosition(int pin, int position) {
     int pulseWidth = map(position, 0, 180, pulseMin, pulseMax);
@@ -520,86 +442,6 @@ void setServoPosition(int pin, int position) {
 
 
 
-// void updateServoPWM() {
-//     static unsigned long lastUpdate = 0;
-//     const unsigned long updateInterval = 20; // Interval de actualizare în ms
-
-//     if (millis() - lastUpdate < updateInterval) {
-//         return; // Așteaptă până la următorul interval
-//     }
-//     lastUpdate = millis();
-
-//     // Static variables to store last pulse widths
-//     static int lastGuestDoorPulse = -1;
-//     static int lastFrontDoorPulse = -1;
-//     static int lastBedRoomPulse = -1;
-//     static int lastGuestWindowPulse = -1;
-//     static int lastLivingWindowPulse = -1;
-//     static int lastBedRoomWindowPulse = -1;
-
-//     // Map current positions to PWM pulse widths
-//     int guestDoorPulse = map(guestDoorPosition, 0, 180, pulseMin, pulseMax);
-//     int frontDoorPulse = map(frontDoorPosition, 0, 180, pulseMin, pulseMax);
-//     int bedRoomPulse = map(bedRoomDoorPosition, 0, 180, pulseMin, pulseMax);
-//     int guestWindowPulse = map(guestWindowPosition, 0, 180, pulseMin, pulseMax);
-//     int livingWindowPulse = map(livingWindowPosition, 0, 180, pulseMin, pulseMax);
-//     int bedRoomWindowPulse = map(bedRoomWindowPosition, 0, 180, pulseMin, pulseMax);
-
-//     // Update only if the pulse width has changed
-//     if (guestDoorPulse != lastGuestDoorPulse) {
-//         sr.set(GUEST_DOOR, true);
-//         delayMicroseconds(guestDoorPulse);
-//         sr.set(GUEST_DOOR, false);
-//         lastGuestDoorPulse = guestDoorPulse;
-//     }
-
-//     if (frontDoorPulse != lastFrontDoorPulse) {
-//         sr.set(FRONT_DOOR, true);
-//         delayMicroseconds(frontDoorPulse);
-//         sr.set(FRONT_DOOR, false);
-//         lastFrontDoorPulse = frontDoorPulse;
-//     }
-
-//     if (bedRoomPulse != lastBedRoomPulse) {
-//         sr.set(BED_ROOM_DOOR, true);
-//         delayMicroseconds(bedRoomPulse);
-//         sr.set(BED_ROOM_DOOR, false);
-//         lastBedRoomPulse = bedRoomPulse;
-//     }
-
-//     if (guestWindowPulse != lastGuestWindowPulse) {
-//         sr.set(GUEST_WINDOW, true);
-//         delayMicroseconds(guestWindowPulse);
-//         sr.set(GUEST_WINDOW, false);
-//         lastGuestWindowPulse = guestWindowPulse;
-//     }
-
-//     if (livingWindowPulse != lastLivingWindowPulse) {
-//         sr.set(LIVING_WINDOW, true);
-//         delayMicroseconds(livingWindowPulse);
-//         sr.set(LIVING_WINDOW, false);
-//         lastLivingWindowPulse = livingWindowPulse;
-//     }
-
-//     if (bedRoomWindowPulse != lastBedRoomWindowPulse) {
-//         sr.set(BED_ROOM_WINDOW, true);
-//         delayMicroseconds(bedRoomWindowPulse);
-//         sr.set(BED_ROOM_WINDOW, false);
-//         lastBedRoomWindowPulse = bedRoomWindowPulse;
-//     }
-// }
-
-
-
-
-
-
-// void deactivateMotor() {
-//   sr.set(IN1, false);
-//   sr.set(IN2, false);
-//   sr.set(IN3, false);
-//   sr.set(IN4, false);
-// }
 void setNewStepperState() {
   // Actualizăm starea pinii IN1, IN2, IN3 și IN4
   sr.set(IN1, stepper.state[0]);
@@ -847,6 +689,13 @@ void streamTimeoutCallback(bool timeout) {
 }
 
 
+void showWiFiSignalStrength() {
+    int rssi = WiFi.RSSI(); 
+    Firebase.setString(firebaseData, "/statusESP8266/wifiSignal", 
+        "RSSI: " + String(rssi) + " dBm");
+}
+
+
 void showFreeHeap() {
     static String lastRamStatus = "";
 
@@ -862,6 +711,29 @@ void showFreeHeap() {
         // Serial.println("Actualizat starea RAM-ului în Firebase.");
     }
 }
+
+void reportStaticInfo() {
+    //Adresa IP
+    Firebase.setString(firebaseData, "/statusESP8266/IP", WiFi.localIP().toString());
+
+    // Adresa MAC
+    Firebase.setString(firebaseData, "/statusESP8266/macAddress", WiFi.macAddress());
+
+    // Frecvența CPU
+    Firebase.setString(firebaseData, "/statusESP8266/cpuFreq", String(ESP.getCpuFreqMHz()) + " MHz");
+
+
+    // Dimensiunea totală Flash
+    Firebase.setString(firebaseData, "/statusESP8266/flash/totalSize", String(ESP.getFlashChipSize()) + " bytes");
+
+    // Dimensiunea libera Flash
+    Firebase.setString(firebaseData, "/statusESP8266/flash/freeSize", String(ESP.getFreeSketchSpace()) + " bytes");
+
+    // Versiunea SDK
+    Firebase.setString(firebaseData, "/statusESP8266/sdkVersion", ESP.getSdkVersion());
+
+}
+
 
 
 void displayHallSensorState() {
@@ -937,22 +809,15 @@ void setup() {
   firebaseConfig.host = FIREBASE_HOST;
   firebaseConfig.signer.tokens.legacy_token = FIREBASE_AUTH;
 
-  
-  // // // Setarea buffer-ului pentru ESP8266
-  // fbdo.setBSSLBufferSize(4096, 1024);
-  // stream.setBSSLBufferSize(2048, 512);
-///asta e bun
-// fbdo.setBSSLBufferSize(2048, 512); 
-// stream.setBSSLBufferSize(1024, 256);
-//si asta e bun
-// fbdo.setBSSLBufferSize(1024, 256);
-stream.setBSSLBufferSize(512, 128);
+
+  stream.setBSSLBufferSize(512, 128);
 
 
 
 // ///De aici apare lag-ul la componente, in special la motorul stepper
   Firebase.begin(&firebaseConfig, &firebaseAuth);
   Firebase.reconnectWiFi(true);
+    reportResetReason();
 
   // Setarea MultiPath Stream
 if (!Firebase.beginMultiPathStream(stream, parentPath)) {
@@ -963,30 +828,14 @@ if (!Firebase.beginMultiPathStream(stream, parentPath)) {
 
   Serial.println("Connected to Firebase");
 
- String ipAddress = WiFi.localIP().toString();
-  if (Firebase.setString(firebaseData, "/statusESP8266/IP", ipAddress)) {
-    Serial.println("IP address uploaded to Firebase: " + ipAddress);
-  } else {
-    Serial.println("Failed to upload IP address to Firebase: " + firebaseData.errorReason());
-  }
 ///pana aici e lag
-
-  // Initialize servos to initial positions
-  setGuestDoorPosition(10);
-  setFrontDoorPosition(15);
-  setBedRoomDoorPosition(145);
-  //Window
-  setGuestWindowPosition(110);
-  setLivingWindowPosition(10);
-  setBedRoomWindowPosition(25);
+  reportStaticInfo();
 
 
   pinMode(LDR_PIN, INPUT);
   pinMode(PIR_PIN, INPUT);
 
-  // pinMode(BUZZER_PIN, OUTPUT);
-  // noTone(BUZZER_PIN); 
-  // digitalWrite(BUZZER_PIN, LOW);
+
   pinMode(HALL_SENSOR_PIN,INPUT_PULLUP); 
    
   pinMode(RAIN_SENSOR_PIN, INPUT);
@@ -1053,12 +902,7 @@ unsigned long lastSensorReadTime = 0;
 const unsigned long sensorReadInterval = 5000; // 5 secunde
 
 void loop() {
-  // Gestionare server și alte funcții
-  // ESP.wdtFeed(); // Resetează watchdog-ul (am inteles ca e pt buclele lungi ca sa nu se mai dea reset)
-
   server.handleClient();
-  // updateServoPWM(); 
-
 
   stepper.update();
   if (stepper.isUpdated) {
@@ -1083,4 +927,17 @@ void readAllSensors() {
     checkRain();
     showFreeHeap();  
     displayHallSensorState(); 
+    showWiFiSignalStrength();
+
+}
+
+void reportResetReason() {
+    String resetReason = ESP.getResetReason();
+
+    // Afișăm motivul resetării în Serial Monitor
+    Serial.print("Motivul resetării: ");
+    Serial.println(resetReason);
+
+    // Trimitem motivul resetării pe Firebase
+ Firebase.setString(firebaseData, "/statusESP8266/resetReason", resetReason);
 }

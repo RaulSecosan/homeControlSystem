@@ -8,6 +8,7 @@
 #include <DHT.h>
 #include <DHT_U.h>
 #include "bipolarstepper.h"
+#include <Ticker.h>
 
 // WiFi credentials
 const char* ssid = "Seco";
@@ -39,6 +40,10 @@ const int latchPin = D8;
 // Create ShiftRegister74HC595 object with 2 shift registers
 ShiftRegister74HC595<3> sr(dataPin, clockPin, latchPin);
 
+
+// PWM dimming on TX and RX
+#define TX_GUEST_LED 1  // GPIO1
+#define RX_BEDROOM_LED 3  // GPIO3
 //Led
 #define GARAGE_LEFT_LED 10
 #define GARAGE_RIGHT_LED 11
@@ -116,15 +121,19 @@ const unsigned long pwmPeriod = 20000; // 20ms în microsecunde
 
 
 
-
-
 bool windowsClosed = false; // Variabilă pentru starea geamurilor
 
-// HTML page for the web server
+
+
+
+
+
 void handleRoot() {
   String html = MAIN_page;
   server.send(200, "text/html", html);
 }
+
+
 
 // Handle temperature and humidity request just for html
 void handleTemperatureHumidity() {
@@ -151,7 +160,7 @@ void checkFire() {
         Firebase.setString(firebaseData, "/sensorData/fire", fireStatus);
         lastFireDetected = currentFireDetected;
         activateBuzzer();
-        Serial.println("Actualizat starea senzorului de foc în Firebase.");
+        // Serial.println("Actualizat starea senzorului de foc în Firebase.");
     }
 }
 
@@ -184,13 +193,13 @@ void checkGas() {
     if (currentGasDetected != lastGasDetected) {
         String gasStatus = currentGasDetected ? "Gas Detected!" : "No Gas";
         Firebase.setString(firebaseData, "/sensorData/gas", gasStatus);
-        Firebase.setString(firebaseData, "/sensorData/gas/gasValue", gasValue);
+        Firebase.setString(firebaseData, "/sensorData/gasValue", gasValue);
 
         lastGasDetected = currentGasDetected;
 
         if (currentGasDetected) {
-            // activateBuzzer(); 
-            Serial.println("Buzzzz Gas");
+            activateBuzzer(); 
+            // Serial.println("Buzzzz Gas");
             
         }
     }
@@ -199,7 +208,7 @@ void checkGas() {
 
 
 void closeWindows() {
-    Serial.println("Closing windows...");
+    // Serial.println("Closing windows...");
     closeGuestWindow();
     closeLivingWindow();
     closeBedRoomWindow();
@@ -260,11 +269,15 @@ void turnOffGarageLed() {
 }
 
 void turnOnGuestLed() {
-  sr.set(GUEST_LED, true);
+  digitalWrite(TX_GUEST_LED, HIGH); 
+
+  // sr.set(GUEST_LED, true);
 }
 
 void turnOffGuestLed() {
-  sr.set(GUEST_LED, false);
+  digitalWrite(TX_GUEST_LED, LOW); // Pornește complet LED-ul
+
+  // sr.set(GUEST_LED, false);
 }
 
 void turnOnDoorLed() {
@@ -281,11 +294,15 @@ void turnOffDoorLed() {
 
 
 void turnOnBedroomLed() {
-  sr.set(BEDROOM_LED, true);
+  // sr.set(BEDROOM_LED, true);
+  digitalWrite(RX_BEDROOM_LED, HIGH); 
+
 }
 
 void turnOffBedroomLed() {
-  sr.set(BEDROOM_LED, false);
+  // sr.set(BEDROOM_LED, false);
+  digitalWrite(RX_BEDROOM_LED, LOW); 
+
 }
 
 
@@ -428,8 +445,9 @@ const int pulseMax = 2600;
 
 void setServoPosition(int pin, int position) {
     int pulseWidth = map(position, 0, 180, pulseMin, pulseMax);
-    Serial.print("Setare servo poziție: ");
-    Serial.println(position);
+    ///Daca decomentez cele 2 serial.print nu mai se reseteaza placuta (watchdog)
+    // Serial.print("Setare servo poziție: ");
+    // Serial.println(position);
 
     // Generăm semnal PWM timp de 1 secundă (50 cicluri la 20 ms fiecare)
     for (int i = 0; i < 50; i++) {
@@ -437,8 +455,43 @@ void setServoPosition(int pin, int position) {
         delayMicroseconds(pulseWidth);
         sr.set(pin, LOW);   // Pin LOW pentru restul perioadei
         delayMicroseconds(pwmPeriod - pulseWidth);
+        yield(); // Previne resetarea watchdog-ului
+
     }
 }
+
+///
+const int pwmPeriod1 = 2000; // Perioada PWM în microsecunde (500 Hz)
+int motorSpeed = 0; // Initial motor speed (0-255)
+unsigned long lastPWMUpdate = 0; // Last update time for PWM
+bool pwmState = false; // Current state of the PWM pin
+
+
+// void generatePWM(int pin, int dutyCycle) {
+//     unsigned long onTime = map(dutyCycle, 0, 100, 0, pwmPeriod1);
+//     unsigned long offTime = pwmPeriod1 - onTime;
+
+//     sr.set(pin, HIGH);
+//     delayMicroseconds(onTime);
+//     sr.set(pin, LOW);
+//     delayMicroseconds(offTime);
+// }
+
+// // Function to set motor speed
+// void setMotorSpeed(int speed) {
+//     motorSpeed = constrain(speed, 0, 255); // Ensure speed is within range
+//     sr.set(MOTOR_IN1, HIGH); // Forward direction
+//     sr.set(MOTOR_IN2, LOW);
+// }
+// void handleSetSpeed() {
+//     if (server.hasArg("value")) {
+//         int speed = server.arg("value").toInt();
+//         setMotorSpeed(speed);
+//         server.send(200, "text/plain", "Speed set to " + String(speed));
+//     } else {
+//         server.send(400, "text/plain", "Speed value missing");
+//     }
+// }
 
 
 
@@ -501,14 +554,14 @@ void checkLightAndMotion() {
         String motionStatus = currentMotionDetected ? "Motion Detected!" : "No Motion";
         Firebase.setString(firebaseData, "/sensorData/motion", motionStatus);
         lastMotionDetected = currentMotionDetected;
-        Serial.println("Actualizat starea senzorului de mișcare în Firebase.");
+        // Serial.println("Actualizat starea senzorului de mișcare în Firebase.");
     }
 
     if (currentIsNight != lastIsNight) {
         String lightStatus = currentIsNight ? "Night" : "Day";
         Firebase.setString(firebaseData, "/sensorData/isDay", lightStatus);
         lastIsNight = currentIsNight;
-        Serial.println("Actualizat starea de lumină (zi/noapte) în Firebase.");
+        // Serial.println("Actualizat starea de lumină (zi/noapte) în Firebase.");
     }
 
     if (currentMotionDetected && currentIsNight) {
@@ -567,11 +620,14 @@ FirebaseData fbdo;
 FirebaseData stream;
 
 String parentPath = "/";  
-String childPath[16] = {
+String childPath[17] = {
+  "/led/guest/ledDim",
+  "/led/bedRoom/ledDim",
+  "/led/guest/led",
+  "/led/bedRoom/led",
   "/led/garageLed",
-  "/led/guestLed",
+  // "/led/guestLed",
   "/led/doorLed",
-  "/led/bedRoomLed",
   "/led/hallLed",
   "/led/livingLed",
   "/door/guestDoor",
@@ -582,17 +638,21 @@ String childPath[16] = {
   "/window/livingWindow",
   "/window/bedRoomWindow",
   "/motor/fan",
-  "/status/message"
 };
+
 
 
 
 String lastGarageDoorState = "close"; // Starea inițială presupusă
 
+// Store brightness (0-100 range)
+int brightnessTX = 0;
+int brightnessRX = 0;
+
 void streamCallback(MultiPathStreamData stream) {
     // Dacă motorul este activ, ignorăm toate celelalte comenzi
     if (isStepperMotorRunning) {
-        Serial.println("Motorul este activ. Aștept terminarea execuției...");
+        // Serial.println("Motorul este activ. Aștept terminarea execuției...");
         return;
     }
 
@@ -603,19 +663,36 @@ void streamCallback(MultiPathStreamData stream) {
             String path = stream.dataPath;
             String value = stream.value.c_str();
 
-            // Serial.printf("path: %s, event: %s, type: %s, value: %s%s",
-            //               path.c_str(), stream.eventType.c_str(),
-            //               stream.type.c_str(), value.c_str(),
-            //               i < numChild - 1 ? "\n" : "");
+            // Convert the value from string to integer
+            int brightnessPercentage = value.toInt();
 
-            // Control LED-uri
+            // Validate brightness percentage (must be between 0 and 100)
+            if (brightnessPercentage < 0 || brightnessPercentage > 100) {
+                // Serial.printf("Invalid brightness value for %s: %d\n", path.c_str(), brightnessPercentage);
+                continue;
+            }
+
+            // Handle each path
+            if (path == "/led/guest/ledDim") {
+                int pwmValue = map(brightnessPercentage, 0, 100, 0, 255); // Map to 0-255
+                analogWrite(TX_GUEST_LED, pwmValue); // Set TX LED (garage)
+                brightnessTX = brightnessPercentage;
+                // Serial.printf("Garage LED brightness set to %d%% (PWM: %d)\n", brightnessPercentage, pwmValue);
+
+            } else if (path == "/led/bedRoom/ledDim") {
+                int pwmValue = map(brightnessPercentage, 0, 100, 0, 255); // Map to 0-255
+                analogWrite(RX_BEDROOM_LED, pwmValue); // Set RX LED (guest)
+                brightnessRX = brightnessPercentage;
+                // Serial.printf("Guest LED brightness set to %d%% (PWM: %d)\n", brightnessPercentage, pwmValue);
+       
+            } else
             if (path == "/led/garageLed") {
                 value == "on" ? turnOnGarageLed() : turnOffGarageLed();
-            } else if (path == "/led/guestLed") {
+            } else if (path == "/led/guest/led") {
                 value == "on" ? turnOnGuestLed() : turnOffGuestLed();
             } else if (path == "/led/doorLed") {
                 value == "on" ? turnOnDoorLed() : turnOffDoorLed();
-            } else if (path == "/led/bedRoomLed") {
+            } else if (path == "/led/bedRoom/led") {
                 value == "on" ? turnOnBedroomLed() : turnOffBedroomLed();
             } else if (path == "/led/hallLed") {
                 value == "on" ? turnOnHallLed() : turnOffHallLed();
@@ -644,10 +721,10 @@ void streamCallback(MultiPathStreamData stream) {
                     lastGarageDoorState = value;
 
                     if (value == "open") {
-                        Serial.println("Comanda primită: open - motorul va merge backward.");
+                        // Serial.println("Comanda primită: open - motorul va merge backward.");
                         handleBackward();
                     } else if (value == "close") {
-                        Serial.println("Comanda primită: close - motorul va merge forward.");
+                        // Serial.println("Comanda primită: close - motorul va merge forward.");
                         handleForward();
                     } 
                 } 
@@ -669,10 +746,8 @@ void streamCallback(MultiPathStreamData stream) {
                 value == "start" ? startFan() : stopFan();
             }
 
-            // Status mesaj
-            else if (path == "/status/message") {
-                Serial.println("Status message: " + value);
-            }
+          
+
         }
     }
 }
@@ -810,7 +885,8 @@ void setup() {
   firebaseConfig.signer.tokens.legacy_token = FIREBASE_AUTH;
 
 
-  stream.setBSSLBufferSize(512, 128);
+  // stream.setBSSLBufferSize(512, 128);
+stream.setBSSLBufferSize(1024, 256); // Crește bufferul dacă datele sunt mari
 
 
 
@@ -831,6 +907,10 @@ if (!Firebase.beginMultiPathStream(stream, parentPath)) {
 ///pana aici e lag
   reportStaticInfo();
 
+
+    // Configure pins for PWM
+  pinMode(TX_GUEST_LED, OUTPUT);
+  pinMode(RX_BEDROOM_LED, OUTPUT);
 
   pinMode(LDR_PIN, INPUT);
   pinMode(PIR_PIN, INPUT);
@@ -892,9 +972,11 @@ if (!Firebase.beginMultiPathStream(stream, parentPath)) {
   server.on("/stopFan", stopFan);
 
 
+
   server.begin();
   Serial.println("HTTP server started");
 }
+
 
 // Main loop
 // Timere pentru senzori 
@@ -920,7 +1002,6 @@ void loop() {
 
 void readAllSensors() {
     checkLightAndMotion();
-    // doorLightEvening();
     displayTemperatureHumidity();
     checkFire();
     checkGas();
@@ -934,10 +1015,11 @@ void readAllSensors() {
 void reportResetReason() {
     String resetReason = ESP.getResetReason();
 
-    // Afișăm motivul resetării în Serial Monitor
-    Serial.print("Motivul resetării: ");
-    Serial.println(resetReason);
+    // // Afișăm motivul resetării în Serial Monitor
+    // Serial.print("Motivul resetării: ");
+    // Serial.println(resetReason);
 
     // Trimitem motivul resetării pe Firebase
  Firebase.setString(firebaseData, "/statusESP8266/resetReason", resetReason);
 }
+

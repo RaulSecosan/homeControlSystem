@@ -66,6 +66,7 @@ const char MAIN_page[] PROGMEM = R"=====(
     }
 
   </script>
+
 </head>
 <body>
   <h1>Control Servo și LED-uri</h1>
@@ -125,6 +126,12 @@ const char MAIN_page[] PROGMEM = R"=====(
   <h2>Control Ventilator</h2>
   <button onclick="sendRequest('/startFan')">Start Ventilator</button>
   <button onclick="sendRequest('/stopFan')">Stop ventilator</button>
+
+
+ <button onclick="sendRequest('/garageLedDim20')">Start Ventilator20</button>
+  <button onclick="sendRequest('/garageLedDim60')">Stop ventilator60</button>
+  <button onclick="sendRequest('/garageLedDim100')">Stop ventilator100</button>
+
 
 </body>
 </html>

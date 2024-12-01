@@ -26,8 +26,10 @@ import {
   turnOffLivingLed,
   turnOnBedroomLed,
   turnOffBedroomLed,
+  bedRoomSlider,
   turnOnGuestLed,
   turnOffGuestLed,
+  guestSlider,
   openGuestWindow,
   closeGuestWindow,
   openBedRoomtWindow,
@@ -75,17 +77,22 @@ export default function ButtonOriginal({
         turnOffLivingLed();
         break;
       case "turnOnBedRoomLed":
-        turnOnBedroomLed();
+        // turnOnBedroomLed();
+        bedRoomSlider(100);
         break;
       case "turnOffBedRoomLed":
-        turnOffBedroomLed();
+        // turnOffBedroomLed();
+        bedRoomSlider(0);
         break;
 
       case "turnOnGuestLed":
-        turnOnGuestLed();
+        // turnOnGuestLed();
+        guestSlider(100);
         break;
       case "turnOffGuestLed":
-        turnOffGuestLed();
+        // turnOffGuestLed();
+        guestSlider(0);
+
         break;
 
       //Doors

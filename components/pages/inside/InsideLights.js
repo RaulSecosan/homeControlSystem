@@ -4,6 +4,7 @@ import Slider from '@react-native-community/slider';
 import Title from '../../Title';
 import GroupButtons from "../../GroupButtons";
 import DirectionButton from "../../DirectionButton";
+import { bedRoomSlider, guestSlider } from '../../SensorsCommunication';
 
 const CustomSlider = ({navigation}) => {
   const [sliderValueLiving, setSliderValueLiving] = useState(100);
@@ -79,7 +80,10 @@ const CustomSlider = ({navigation}) => {
           maximumTrackTintColor="#FF8C84"
           thumbTintColor="#FF5C58"
           value={sliderValueBedRoom}
-          onValueChange={(value) => setSliderValueBedRoom(value)}
+          onValueChange={(value) => {
+          setSliderValueBedRoom(value); // Actualizează valoarea local
+          bedRoomSlider(value.toFixed(0)); // Trimite valoarea către Firebase
+        }}    
         />
       </View>
     </View>
@@ -104,8 +108,10 @@ const CustomSlider = ({navigation}) => {
           maximumTrackTintColor="#FF8C84"
           thumbTintColor="#FF5C58"
           value={sliderValueGuest}
-          onValueChange={(value) => setSliderValueGuest(value)}
-        />
+          onValueChange={(value) => {
+          setSliderValueGuest(value); 
+          guestSlider(value.toFixed(0)); 
+        }}          />
       </View>
     </View>
 

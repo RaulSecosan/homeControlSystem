@@ -10,6 +10,9 @@
 #include "bipolarstepper.h"
 #include <Ticker.h>
 
+Ticker toneTicker;
+
+
 // WiFi credentials
 const char* ssid = "Seco";
 const char* password = "secosanpq1";
@@ -47,10 +50,10 @@ ShiftRegister74HC595<3> sr(dataPin, clockPin, latchPin);
 //Led
 #define GARAGE_LEFT_LED 10
 #define GARAGE_RIGHT_LED 11
-#define GUEST_LED   12
+// #define GUEST_LED   12
 #define DOOR_LEFT_LED 13
 #define DOOR_RIGHT_LED 14
-#define BEDROOM_LED 15
+// #define BEDROOM_LED 15
 #define HALL_LED 16
 #define LIVING_LED1 17
 #define LIVING_LED2 18
@@ -74,6 +77,10 @@ ShiftRegister74HC595<3> sr(dataPin, clockPin, latchPin);
 #define IN3 5
 #define IN4 6
 
+// Buzzer
+#define BUZZER_PIN 22
+
+
 BiPolStepper stepper(2048); // Motor pas cu pas cu 2048 pași
 
 
@@ -81,8 +88,6 @@ BiPolStepper stepper(2048); // Motor pas cu pas cu 2048 pași
 #define DHTTYPE DHT11
 DHT dht(DHT_PIN, DHTTYPE);
 
-// #define BUZZER_PIN D8
-#define BUZZER_PIN 22
 
 #define RAIN_SENSOR_PIN D3
 #define GAS_SENSOR_PIN A0
@@ -95,14 +100,8 @@ int pirValue = 0;
 volatile bool isStepperMotorRunning = false; 
 
 
-// Stepper motor steps and delays
-const int stepsPerRevolution = 2048; // 2048 steps per revolution for 28BYJ-48
-const int stepsFor190Degrees = (stepsPerRevolution * 190) / 360;
-const int stepperSpeedDelay = 5; // Adjust this value to change speed
-
+// Stepper motor 
 volatile bool isRunning = false;
-volatile int stepsToMove = 0;
-unsigned long lastStepperUpdate = 0;
 
 // Variables for servo control
 int guestDoorPosition; 
@@ -111,10 +110,6 @@ int bedRoomDoorPosition;
 int guestWindowPosition; 
 int bedRoomWindowPosition; 
 int livingWindowPosition; 
-unsigned long lastServoUpdate = 0;
-const int pwmFrequency = 50; // Servo PWM frequency in Hz (standard is 50Hz)
-// const int pwmPeriod = 20; // Period in milliseconds (20ms for 50Hz)
-const unsigned long pwmPeriod = 20000; // 20ms în microsecunde
 
 // const int pulseMin = 544; // Minimum pulse width in microseconds
 // const int pulseMax = 2400; // Maximum pulse width in microseconds
@@ -188,7 +183,7 @@ void checkGas() {
     static bool lastGasDetected = false;
 
     int gasValue = analogRead(GAS_SENSOR_PIN); 
-    bool currentGasDetected = (gasValue > 900); 
+    bool currentGasDetected = (gasValue > 1000); 
 
     if (currentGasDetected != lastGasDetected) {
         String gasStatus = currentGasDetected ? "Gas Detected!" : "No Gas";
@@ -222,6 +217,7 @@ void handleSensorsStatus() {
   int gasState = analogRead(GAS_SENSOR_PIN);
   int rainValue = digitalRead(RAIN_SENSOR_PIN);
   int pirValue = digitalRead(PIR_PIN);
+  int hallState = digitalRead(HALL_SENSOR_PIN); 
 
   if (fireState == LOW) {
     message += "Fire detected! ";
@@ -229,8 +225,10 @@ void handleSensorsStatus() {
   } else {
     message += "No fire. ";
   }
- message += "Gas Value: " + String(gasState) + "\n";
-    message += "Rain Value: " + String(rainValue) + "\n";
+
+  message += "Gas Value: " + String(gasState) + "\n";
+  message += "Rain Value: " + String(rainValue) + "\n";
+  message += "Door Status: " + String(hallState) + "\n";
 
   // if (gasState == LOW) {
   //   message += "Gas detected! ";
@@ -334,51 +332,48 @@ void turnOffLivingLed2() {
 }
 
 
-//Doors
+    //Doors
+//GuestDoor
 void setGuestDoorPosition(int position) {
   guestDoorPosition = position;
 
 }
 
 void openGuestDoor() {
-  // setGuestDoorPosition(170); 
     setServoPosition(GUEST_DOOR, 170);
 
 }
 
 void closeGuestDoor() {
-  // setGuestDoorPosition(10);
     setServoPosition(GUEST_DOOR, 20);
 
 }
 
 
-
-
+//FrontDoor
 void setFrontDoorPosition(int position) {
   frontDoorPosition = position;
 }
 
 void openFrontDoor() {
-  // setFrontDoorPosition(140); 
-    setServoPosition(FRONT_DOOR, 140); // Trimite semnal pentru 140°
-    // delay(1000); // Așteaptă 1 secundă pentru a permite mișcarea completă
+    // setServoPosition(FRONT_DOOR, 140); 
+        setServoPosition(FRONT_DOOR, 170); 
+
 }
 
 void closeFrontDoor() {
-   setServoPosition(FRONT_DOOR, 20); // Trimite semnal pentru 140°
-    // delay(1000); // Așteaptă 1 secundă pentru a permite mișcarea completă
-  // setFrontDoorPosition(15); 
+  //  setServoPosition(FRONT_DOOR, 21); 
+      setServoPosition(FRONT_DOOR, 55); 
+
 }
 
-
+//BedRoomDoor
 void setBedRoomDoorPosition(int position) {
   bedRoomDoorPosition = position;
 }
 
 void openBedRoomDoor() {
-  // setBedRoomDoorPosition(5); 
-                setServoPosition(BED_ROOM_DOOR, 20);
+  setServoPosition(BED_ROOM_DOOR, 20);
 
 }
 
@@ -439,6 +434,8 @@ void closeLivingWindow() {
 
 }
 
+
+const unsigned long pwmPeriod = 20000; // 20ms în microsecunde
 const int pulseMin = 400;  
 const int pulseMax = 2600;
 
@@ -460,41 +457,9 @@ void setServoPosition(int pin, int position) {
     }
 }
 
-///
-const int pwmPeriod1 = 2000; // Perioada PWM în microsecunde (500 Hz)
-int motorSpeed = 0; // Initial motor speed (0-255)
-unsigned long lastPWMUpdate = 0; // Last update time for PWM
-bool pwmState = false; // Current state of the PWM pin
 
 
-// void generatePWM(int pin, int dutyCycle) {
-//     unsigned long onTime = map(dutyCycle, 0, 100, 0, pwmPeriod1);
-//     unsigned long offTime = pwmPeriod1 - onTime;
-
-//     sr.set(pin, HIGH);
-//     delayMicroseconds(onTime);
-//     sr.set(pin, LOW);
-//     delayMicroseconds(offTime);
-// }
-
-// // Function to set motor speed
-// void setMotorSpeed(int speed) {
-//     motorSpeed = constrain(speed, 0, 255); // Ensure speed is within range
-//     sr.set(MOTOR_IN1, HIGH); // Forward direction
-//     sr.set(MOTOR_IN2, LOW);
-// }
-// void handleSetSpeed() {
-//     if (server.hasArg("value")) {
-//         int speed = server.arg("value").toInt();
-//         setMotorSpeed(speed);
-//         server.send(200, "text/plain", "Speed set to " + String(speed));
-//     } else {
-//         server.send(400, "text/plain", "Speed value missing");
-//     }
-// }
-
-
-
+//Stepper
 void setNewStepperState() {
   // Actualizăm starea pinii IN1, IN2, IN3 și IN4
   sr.set(IN1, stepper.state[0]);
@@ -519,6 +484,7 @@ void handleForward() {
     }
 
     isStepperMotorRunning = false; // Motorul a terminat execuția
+    deactivateStepper();
 }
 
 void handleBackward() {
@@ -536,8 +502,15 @@ void handleBackward() {
     }
 
     isStepperMotorRunning = false; // Motorul a terminat execuția
+    deactivateStepper();
 }
 
+void deactivateStepper() {
+  sr.set(IN1, LOW);
+  sr.set(IN2, LOW);
+  sr.set(IN3, LOW);
+  sr.set(IN4, LOW);
+}
 
 
 unsigned long lastMotionTime = 0;  // Variabilă pentru a stoca timpul ultimei mișcări detectate
@@ -626,7 +599,6 @@ String childPath[17] = {
   "/led/guest/led",
   "/led/bedRoom/led",
   "/led/garageLed",
-  // "/led/guestLed",
   "/led/doorLed",
   "/led/hallLed",
   "/led/livingLed",
@@ -638,6 +610,7 @@ String childPath[17] = {
   "/window/livingWindow",
   "/window/bedRoomWindow",
   "/motor/fan",
+  "/statusESP8266/reset",
 };
 
 
@@ -745,9 +718,11 @@ void streamCallback(MultiPathStreamData stream) {
             else if (path == "/motor/fan") {
                 value == "start" ? startFan() : stopFan();
             }
-
-          
-
+              else if (path == "/statusESP8266/reset") {
+                      if (value == "reset") {
+                           handleReset();
+                       }    
+                    }        
         }
     }
 }
@@ -809,7 +784,9 @@ void reportStaticInfo() {
 
 }
 
-
+void handleReset() {
+    ESP.restart();
+}
 
 void displayHallSensorState() {
   int hallState = digitalRead(HALL_SENSOR_PIN); 
@@ -824,39 +801,15 @@ void displayHallSensorState() {
 
 
 
-void  activateBuzzerManual(int buzzerChannel, int frequency, int duration) {
-  int delayTime = 1000000 / (frequency * 2); 
-  unsigned long startTime = millis();      
-
-  while (millis() - startTime < duration) {
-    sr.set(buzzerChannel, true);  
-    delayMicroseconds(delayTime); 
-    sr.set(buzzerChannel, false); 
-    delayMicroseconds(delayTime); 
-  }
-}
-
-void deactivateBuzzerManual() {
-  sr.set(BUZZER_PIN, false); 
-}
-
-
 void activateBuzzer() {
-   activateBuzzerManual(BUZZER_PIN, 1000, 2000);
+  sr.set(BUZZER_PIN, HIGH); 
 }
 
 void deactivateBuzzer() {
-       deactivateBuzzerManual();         
+  sr.set(BUZZER_PIN, LOW); 
 }
 
-void activateBuzzer1() {
-   activateBuzzerManual(BUZZER_PIN, 500, 2000);
 
-}
-
-void deactivateBuzzer1() {
-  sr.set(BUZZER_PIN, false); 
-}
 
 // Setup function
 void setup() {
@@ -886,11 +839,8 @@ void setup() {
 
 
   // stream.setBSSLBufferSize(512, 128);
-stream.setBSSLBufferSize(1024, 256); // Crește bufferul dacă datele sunt mari
+  stream.setBSSLBufferSize(1024, 256); // Crește bufferul dacă datele sunt mari
 
-
-
-// ///De aici apare lag-ul la componente, in special la motorul stepper
   Firebase.begin(&firebaseConfig, &firebaseAuth);
   Firebase.reconnectWiFi(true);
     reportResetReason();
@@ -904,11 +854,10 @@ if (!Firebase.beginMultiPathStream(stream, parentPath)) {
 
   Serial.println("Connected to Firebase");
 
-///pana aici e lag
   reportStaticInfo();
 
 
-    // Configure pins for PWM
+    // Configure pins for DIM led
   pinMode(TX_GUEST_LED, OUTPUT);
   pinMode(RX_BEDROOM_LED, OUTPUT);
 
@@ -926,11 +875,12 @@ if (!Firebase.beginMultiPathStream(stream, parentPath)) {
   server.on("/", handleRoot);
   server.on("/temperature_humidity", handleTemperatureHumidity);
   server.on("/sensors_status", handleSensorsStatus);
+
   //Buzzer
   server.on("/onBuzzer", activateBuzzer);
   server.on("/OffBuzzer", deactivateBuzzer);
-  server.on("/onBuzzer1", activateBuzzer1);
-  server.on("/OffBuzzer1", deactivateBuzzer1);
+  // server.on("/onBuzzer1", activateBuzzer1);
+  // server.on("/OffBuzzer1", deactivateBuzzer1);
 
   // LED control routes
   server.on("/garageLedOn", turnOnGarageLed);
@@ -980,8 +930,13 @@ if (!Firebase.beginMultiPathStream(stream, parentPath)) {
 
 // Main loop
 // Timere pentru senzori 
+unsigned long lastHallSensorReadTime = 0;
+const unsigned long hallSensorInterval = 2000; // 2 secunde
+
 unsigned long lastSensorReadTime = 0;
 const unsigned long sensorReadInterval = 5000; // 5 secunde
+
+
 
 void loop() {
   server.handleClient();
@@ -994,6 +949,11 @@ void loop() {
 
   unsigned long currentTime = millis();
   // Citirea senzorilor la intervalul definit
+   if (currentTime - lastHallSensorReadTime >= hallSensorInterval) {
+    lastHallSensorReadTime = currentTime;
+    displayHallSensorState();
+  }
+
   if (currentTime - lastSensorReadTime >= sensorReadInterval) {
     lastSensorReadTime = currentTime;
     readAllSensors();
@@ -1007,7 +967,6 @@ void readAllSensors() {
     checkGas();
     checkRain();
     showFreeHeap();  
-    displayHallSensorState(); 
     showWiFiSignalStrength();
 
 }

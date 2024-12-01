@@ -101,6 +101,23 @@ export const turnOffHallLed = async () => {
   }
 };
 
+//Sliders
+export const bedRoomSlider = async (value) => {
+  try {
+    await set(ref(database, '/led/bedRoom/ledDim'), value);
+  } catch (error) {
+    Alert.alert('Eroare', 'Nu s-a putut actualiza valoarea slider-ului în Firebase');
+  }
+};
+
+export const guestSlider = async (value) => {
+  try {
+    await set(ref(database, '/led/guest/ledDim'), value);
+  } catch (error) {
+    Alert.alert('Eroare', 'Nu s-a putut actualiza valoarea slider-ului în Firebase');
+  }
+};
+
 // Door Control Functions
 export const openFrontDoor = async () => {
   try {

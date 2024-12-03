@@ -1,7 +1,7 @@
 import { StyleSheet, Text, View, Image, Pressable } from "react-native";
 
 import Title from "../../Title";
-import GroupButtons from "../../GroupButtons";
+import GroupButtons, { StatusButton } from "../../GroupButtons";
 import DirectionButton from "../../DirectionButton";
 import { OneButton } from "../../GroupButtons";
 
@@ -17,6 +17,11 @@ export default function Inside({ navigation }) {
       <View style={styles.title}>
         <Title name="Inside" />
       </View>
+
+      <View style={styles.topButton}>
+        <StatusButton name="X" link="Status" navigation={navigation} />
+      </View>
+
       <GroupButtons
         paragraphName="Hall Lights"
         buttonLeftName="On"
@@ -106,5 +111,11 @@ const styles = StyleSheet.create({
   bottomButtons: {
     flexDirection: "row-reverse",
     alignItems: "center",
+  },
+  topButton:{
+    position: "absolute",
+    top: "7%",
+    left: "5%",
+    opacity: 0.4
   },
 });

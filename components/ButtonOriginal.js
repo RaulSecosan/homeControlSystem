@@ -1,5 +1,4 @@
 import { StyleSheet, Text, View, Pressable } from "react-native";
-import { NavigationContainer } from "@react-navigation/native";
 
 import {
   turnOnDoorLed,
@@ -10,12 +9,6 @@ import {
   closeGuestDoor,
   openBedRoomDoor,
   closeBedRoomDoor,
-  openDoor,
-  closeDoor,
-  openGate,
-  closeGate,
-  on,
-  off,
   turnOnGarageLed,
   turnOffGarageLed,
   openGarageGate,
@@ -24,11 +17,7 @@ import {
   turnOnHallLed,
   turnOnLivingLed,
   turnOffLivingLed,
-  turnOnBedroomLed,
-  turnOffBedroomLed,
   bedRoomSlider,
-  turnOnGuestLed,
-  turnOffGuestLed,
   guestSlider,
   openGuestWindow,
   closeGuestWindow,
@@ -38,6 +27,7 @@ import {
   closeLivingWindow,
   openLivingFan,
   closeLivingFan,
+  resetESP,
 } from "./SensorsCommunication";
 
 export default function ButtonOriginal({
@@ -146,6 +136,9 @@ export default function ButtonOriginal({
         break;
       case "closeLivingFan":
         closeLivingFan();
+        break;
+      case "resetESP":
+        resetESP();
         break;
       default:
         console.log("ai gresit comanda sau nu a fost inca initializata");

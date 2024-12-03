@@ -6,6 +6,8 @@ import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import Home from "./components/pages/Home";
 import Outside from "./components/pages/outside/Outside";
 import Inside from "./components/pages/inside/InsideFirstPage";
+import StatusESP8266 from "./components/pages/inside/StatusESP8266";
+
 import InsideSecondPage from "./components/pages/inside/InsideSecondPage";
 import Sensors from "./components/pages/inside/Sensors";
 import InsideLights from "./components/pages/inside/InsideLights";
@@ -30,6 +32,8 @@ export default function App() {
           <Stack.Screen name="Home" component={Home} />
           <Stack.Screen name="Outside" component={Outside} />
           <Stack.Screen name="Inside" component={Inside} />
+          <Stack.Screen name="Status" component={StatusESP8266} />
+
           <Stack.Screen name="InsideSecondPage" component={InsideSecondPage} />
           <Stack.Screen name="Sensors" component={Sensors} />
           <Stack.Screen name="InsideLights" component={InsideLights} />

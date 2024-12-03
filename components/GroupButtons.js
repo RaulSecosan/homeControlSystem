@@ -40,7 +40,32 @@ export default function GroupButtons({
   );
 }
 
-export function OneButton({ name, link,navigation }) {
+export  function OneButtonForStatusPage({
+  paragraphName,
+  buttonLeftName,
+  buttonLeftAction,
+}) {
+  return (
+    <View style={styles.alignContainer}>
+      <Text style={styles.paragraph}>{paragraphName}</Text>
+      <View style={styles.buttonRow}>
+        <View style={styles.buttonBox}>
+          <LinearGradient
+            colors={["#BB6666", "#552F2F"]}
+            start={{ x: 0.0, y: 0.0 }}
+            end={{ x: 1.0, y: 1.0 }}
+            locations={[0, 0.8]}
+            style={styles.buttonBoxGradient}
+          >
+            <ButtonOriginal name={buttonLeftName} action={buttonLeftAction} />
+          </LinearGradient>
+        </View>
+      </View>
+    </View>
+  );
+}
+
+export function OneButton({ name, link, navigation }) {
   return (
     <LinearGradient
       colors={["#BB6666", "#552F2F"]}
@@ -49,7 +74,35 @@ export function OneButton({ name, link,navigation }) {
       locations={[0, 0.8]}
       style={styles.buttonBoxGradientforOneButton}
     >
-      <ButtonOriginal name={name} link={link}  navigation={navigation}/>
+      <ButtonOriginal name={name} link={link} navigation={navigation} />
+    </LinearGradient>
+  );
+}
+
+export function StatusButton({ name, link, navigation }) {
+  return (
+    <LinearGradient
+      colors={["#BB6666", "#552F2F"]}
+      start={{ x: 0.0, y: 0.0 }}
+      end={{ x: 1.0, y: 1.0 }}
+      locations={[0, 0.8]}
+      style={styles.buttonBoxGradientforStatusButton}
+    >
+      <ButtonOriginal name={name} link={link} navigation={navigation} />
+    </LinearGradient>
+  );
+}
+
+export function StatusPageButton({ name, link, navigation }) {
+  return (
+    <LinearGradient
+      colors={["#4a3333", "#552F2F"]}
+      // start={{ x: 0.0, y: 0.0 }}
+      // end={{ x: 1.0, y: 1.0 }}
+      // locations={[0, 0.8]}
+      style={styles.buttonBoxGradientforStatusPage}
+    >
+      <ButtonOriginal name={name} link={link} navigation={navigation} />
     </LinearGradient>
   );
 }
@@ -84,6 +137,31 @@ const styles = StyleSheet.create({
     width: 55,
     height: 50,
     backgroundColor: "#BB6666",
+    justifyContent: "center",
+    alignItems: "center",
+    borderRadius: 30,
+    marginRight: 10,
+    borderWidth: 1,
+    borderColor: "#BB6666",
+  },
+
+  buttonBoxGradientforStatusButton: {
+    marginTop: 20,
+    width: 55,
+    height: 50,
+    backgroundColor: "#BB6666",
+    justifyContent: "center",
+    alignItems: "center",
+    borderRadius: 10,
+    // marginRight: 10,
+    borderWidth: 1,
+    borderColor: "#BB6666",
+  },
+  buttonBoxGradientforStatusPage: {
+    marginTop: 20,
+    width: 55,
+    height: 50,
+    backgroundColor: "#4a3333",
     justifyContent: "center",
     alignItems: "center",
     borderRadius: 30,

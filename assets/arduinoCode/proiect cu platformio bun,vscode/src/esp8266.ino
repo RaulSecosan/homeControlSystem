@@ -8,9 +8,7 @@
 #include <DHT.h>
 #include <DHT_U.h>
 #include "bipolarstepper.h"
-#include <Ticker.h>
 
-Ticker toneTicker;
 
 
 // WiFi credentials
@@ -183,7 +181,7 @@ void checkGas() {
     static bool lastGasDetected = false;
 
     int gasValue = analogRead(GAS_SENSOR_PIN); 
-    bool currentGasDetected = (gasValue > 1000); 
+    bool currentGasDetected = (gasValue > 1200); 
 
     if (currentGasDetected != lastGasDetected) {
         String gasStatus = currentGasDetected ? "Gas Detected!" : "No Gas";
@@ -198,6 +196,7 @@ void checkGas() {
             
         }
     }
+      Firebase.setString(firebaseData, "/sensorData/gasValue", gasValue);
 }
 
 
@@ -482,9 +481,9 @@ void handleForward() {
         setNewStepperState();
         yield(); // Permite altor procese să ruleze
     }
-
-    isStepperMotorRunning = false; // Motorul a terminat execuția
+    
     deactivateStepper();
+    isStepperMotorRunning = false; // Motorul a terminat execuția
 }
 
 void handleBackward() {
@@ -501,8 +500,8 @@ void handleBackward() {
         yield(); // Permite altor procese să ruleze
     }
 
-    isStepperMotorRunning = false; // Motorul a terminat execuția
     deactivateStepper();
+    isStepperMotorRunning = false; // Motorul a terminat execuția
 }
 
 void deactivateStepper() {
@@ -622,6 +621,17 @@ String lastGarageDoorState = "close"; // Starea inițială presupusă
 int brightnessTX = 0;
 int brightnessRX = 0;
 
+void handleLedWithPWM(int pin, int brightnessPercentage) {
+    if (brightnessPercentage == 0) {
+        digitalWrite(pin, LOW); 
+    } else if (brightnessPercentage == 100) {
+        digitalWrite(pin, HIGH); 
+    } else {
+        analogWrite(pin, brightnessPercentage); 
+    }
+}
+
+
 void streamCallback(MultiPathStreamData stream) {
     // Dacă motorul este activ, ignorăm toate celelalte comenzi
     if (isStepperMotorRunning) {
@@ -647,27 +657,35 @@ void streamCallback(MultiPathStreamData stream) {
 
             // Handle each path
             if (path == "/led/guest/ledDim") {
-                int pwmValue = map(brightnessPercentage, 0, 100, 0, 255); // Map to 0-255
-                analogWrite(TX_GUEST_LED, pwmValue); // Set TX LED (garage)
+                // int pwmValue = map(brightnessPercentage, 0, 100, 0, 255); // Map to 0-255
+                // analogWrite(TX_GUEST_LED, pwmValue); // Set TX LED (garage)
+
+                handleLedWithPWM(TX_GUEST_LED, brightnessPercentage); 
                 brightnessTX = brightnessPercentage;
                 // Serial.printf("Garage LED brightness set to %d%% (PWM: %d)\n", brightnessPercentage, pwmValue);
 
             } else if (path == "/led/bedRoom/ledDim") {
-                int pwmValue = map(brightnessPercentage, 0, 100, 0, 255); // Map to 0-255
-                analogWrite(RX_BEDROOM_LED, pwmValue); // Set RX LED (guest)
+                // int pwmValue = map(brightnessPercentage, 0, 100, 0, 255); // Map to 0-255
+                // analogWrite(RX_BEDROOM_LED, pwmValue); // Set RX LED (guest)
+                
+                handleLedWithPWM(RX_BEDROOM_LED, brightnessPercentage); // Gestionare pentru LED-ul de la bedroom
                 brightnessRX = brightnessPercentage;
                 // Serial.printf("Guest LED brightness set to %d%% (PWM: %d)\n", brightnessPercentage, pwmValue);
        
             } else
             if (path == "/led/garageLed") {
                 value == "on" ? turnOnGarageLed() : turnOffGarageLed();
-            } else if (path == "/led/guest/led") {
-                value == "on" ? turnOnGuestLed() : turnOffGuestLed();
-            } else if (path == "/led/doorLed") {
+            } 
+            // else if (path == "/led/guest/led") {
+            //     value == "on" ? turnOnGuestLed() : turnOffGuestLed();
+            // } 
+            else if (path == "/led/doorLed") {
                 value == "on" ? turnOnDoorLed() : turnOffDoorLed();
-            } else if (path == "/led/bedRoom/led") {
-                value == "on" ? turnOnBedroomLed() : turnOffBedroomLed();
-            } else if (path == "/led/hallLed") {
+            } 
+            // else if (path == "/led/bedRoom/led") {
+            //     value == "on" ? turnOnBedroomLed() : turnOffBedroomLed();
+            // }
+             else if (path == "/led/hallLed") {
                 value == "on" ? turnOnHallLed() : turnOffHallLed();
             } else if (path == "/led/livingLed") {
                 if (value == "on") {
@@ -745,22 +763,29 @@ void showWiFiSignalStrength() {
         "RSSI: " + String(rssi) + " dBm");
 }
 
-
 void showFreeHeap() {
     static String lastRamStatus = "";
 
-    int freeRam = ESP.getFreeHeap();
-    int totalRam = 50000; 
-    float freePercentage = ((float)freeRam / totalRam) * 100;
+    // Obținem memoria liberă și totală direct în kilobytes
+    float freeRam = ESP.getFreeHeap() / 1024.0;  // Convertim bytes în kilobytes
+    float totalRam = 50000.0 / 1024.0;           // Total RAM în kilobytes
 
-    String currentRamStatus = String(freeRam) + " bytes (" + String(freePercentage, 2) + "%)";
+    // Calculăm procentajul memoriei libere
+    float freePercentage = (freeRam / totalRam) * 100.0;
+    String currentRamStatus = String(freeRam, 2) + " kB (" + String(freePercentage, 2) + "%)";
 
     if (currentRamStatus != lastRamStatus) {
-        Firebase.setString(firebaseData, "/statusESP8266/ram", currentRamStatus);
+        // Trimitem totalul și memoria liberă în kilobytes
+        Firebase.setString(firebaseData, "/statusESP8266/ram/totalRAM", String(totalRam, 2) + " kB");
+        Firebase.setString(firebaseData, "/statusESP8266/ram/freeRAM", String(freeRam, 2) + " kB");
+        Firebase.setString(firebaseData, "/statusESP8266/ram/percentRAM",  String(freePercentage, 2) + " %");
+
+        // Salvăm starea pentru actualizări viitoare
         lastRamStatus = currentRamStatus;
         // Serial.println("Actualizat starea RAM-ului în Firebase.");
     }
 }
+
 
 void reportStaticInfo() {
     //Adresa IP
@@ -773,11 +798,18 @@ void reportStaticInfo() {
     Firebase.setString(firebaseData, "/statusESP8266/cpuFreq", String(ESP.getCpuFreqMHz()) + " MHz");
 
 
-    // Dimensiunea totală Flash
-    Firebase.setString(firebaseData, "/statusESP8266/flash/totalSize", String(ESP.getFlashChipSize()) + " bytes");
+    // // Dimensiunea totală Flash
+    // Firebase.setString(firebaseData, "/statusESP8266/flash/totalSize", String(ESP.getFlashChipSize()) + " bytes");
 
-    // Dimensiunea libera Flash
-    Firebase.setString(firebaseData, "/statusESP8266/flash/freeSize", String(ESP.getFreeSketchSpace()) + " bytes");
+    // // Dimensiunea libera Flash
+        // Firebase.setString(firebaseData, "/statusESP8266/flash/freeSize", String(ESP.getFreeSketchSpace()) + " bytes");
+    // Dimensiunea totală Flash în MB
+    Firebase.setString(firebaseData, "/statusESP8266/flash/totalSize", 
+                      String(ESP.getFlashChipSize() / 1048576.0, 2) + " MB");
+
+    // Dimensiunea liberă Flash în MB
+    Firebase.setString(firebaseData, "/statusESP8266/flash/freeSize", 
+                      String(ESP.getFreeSketchSpace() / 1048576.0, 2) + " MB");
 
     // Versiunea SDK
     Firebase.setString(firebaseData, "/statusESP8266/sdkVersion", ESP.getSdkVersion());
@@ -791,10 +823,10 @@ void handleReset() {
 void displayHallSensorState() {
   int hallState = digitalRead(HALL_SENSOR_PIN); 
   if (hallState == LOW) {
-    Firebase.setString(firebaseData, "/doorStatus", "closed");
+    Firebase.setString(firebaseData, "/sensorData/doorStatus", "closed");
 
   } else {
-    Firebase.setString(firebaseData, "/doorStatus", "opened");
+    Firebase.setString(firebaseData, "/sensorData/doorStatus", "opened");
 
   }
 }
@@ -853,6 +885,8 @@ if (!Firebase.beginMultiPathStream(stream, parentPath)) {
   Firebase.setMultiPathStreamCallback(stream, streamCallback, streamTimeoutCallback);
 
   Serial.println("Connected to Firebase");
+
+  Firebase.setString(firebaseData, "/statusESP8266/reset", "no reset");
 
   reportStaticInfo();
 

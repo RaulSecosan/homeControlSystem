@@ -8,6 +8,15 @@ export default function Title({ name }) {
   );
 }
 
+export  function TitleForStatusPage({ name }) {
+  return (
+    <View style={styles.titleBoxForStatusPage}>
+      <Text style={styles.title}>{name}</Text>
+    </View>
+  );
+}
+
+
 const styles = StyleSheet.create({
   titleBox: {
     // width: 138,
@@ -21,5 +30,13 @@ const styles = StyleSheet.create({
     color: "white",
     fontSize: 30,
     paddingHorizontal: 25,
+  },
+
+  titleBoxForStatusPage: {
+    height: 50,
+    backgroundColor: "#694141",
+    justifyContent: "center",
+    alignItems: "center",
+    borderRadius: 15,
   },
 });

@@ -27,7 +27,7 @@ export default function Sensors({ navigation }) {
     let gasColorInterval;
 
     // Fire sensor logic
-    if (sensorData && sensorData["fire"] === "Fire") {
+    if (sensorData && sensorData["fire"] === "Fire!") {
       fireColorInterval = setInterval(() => {
         setFireBorderColor((prevColor) =>
           prevColor === "orange" ? "red" : "orange"
@@ -39,7 +39,7 @@ export default function Sensors({ navigation }) {
     }
 
     // Gas sensor logic
-    if (sensorData && sensorData["gas"] === "Gas") {
+    if (sensorData && sensorData["gas"] === "Gas!") {
       gasColorInterval = setInterval(() => {
         setGasBorderColor((prevColor) =>
           prevColor === "orange" ? "red" : "orange"
@@ -200,14 +200,13 @@ const styles = StyleSheet.create({
     fontSize: 30,
   },
 
-  
   sensorNameMotion: {
     marginTop: 20,
     marginBottom: 10,
     color: "white",
     fontSize: 28,
   },
-  temperatureBox:{
+  temperatureBox: {
     marginBottom: 30,
   },
 
@@ -279,7 +278,7 @@ const styles = StyleSheet.create({
   sensorDetailNameTemperature: {
     color: "white",
     fontSize: 20,
-    left:15
+    left: 15,
   },
 
   sensorDetailNameMotion: {

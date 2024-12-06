@@ -34,7 +34,7 @@ export default function Status({ navigation }) {
       <View style={styles.rowBox}>
         <View style={styles.displayBox}>
           <Text style={styles.displayTitleBoxFor2Rows}>RAM</Text>
-          <View style={styles.displayRowInsideBoxFor2Rows}>
+          <View style={styles.displayRowInsideBoxFor2RowsRAM}>
             <Text style={styles.displayNumberFor2RowRAM}>
               {sensorData
                 ? "Free \n " + sensorData["ram"]["freeRAM"]
@@ -210,15 +210,20 @@ const styles = StyleSheet.create({
   displayRowInsideBoxFor2Rows: {
     flexDirection: "row",
     justifyContent: "center",
-    marginHorizontal: 30,
     gap: 30,
   },
+
+  displayRowInsideBoxFor2RowsRAM: {
+    flexDirection: "row",
+    justifyContent: "center",
+    gap: 20,
+  },
+
   displayNumberFor2RowRAM: {
     color: "white",
     fontSize: 16,
     fontWeight: "600",
     textAlign: "center",
-
   },
 
   button: {

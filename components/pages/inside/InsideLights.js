@@ -7,9 +7,9 @@ import DirectionButton from "../../DirectionButton";
 import { bedRoomSlider, guestSlider } from '../../SensorsCommunication';
 
 const CustomSlider = ({navigation}) => {
-  const [sliderValueLiving, setSliderValueLiving] = useState(100);
-  const [sliderValueBedRoom, setSliderValueBedRoom] = useState(100);
-  const [sliderValueGuest, setSliderValueGuest] = useState(100);
+  const [sliderValueLiving, setSliderValueLiving] = useState(0);
+  const [sliderValueBedRoom, setSliderValueBedRoom] = useState(0);
+  const [sliderValueGuest, setSliderValueGuest] = useState(0);
 
   return (
 

@@ -1,169 +1,176 @@
 #include <ESP8266WiFi.h>
 #include <ESP8266WebServer.h>
 #include <ShiftRegister74HC595.h>
-#include <DHT.h>
-#include <Firebase.h>
 
-// WiFi credentials
+// Conexiuni Wi-Fi
 const char* ssid = "Seco";
 const char* password = "secosanpq1";
 
+// Conexiuni Shift Register
+const int dataPin = D5;   // DS
+const int clockPin = D6;  // SHCP
+const int latchPin = D8;  // STCP
 
-#define FIREBASE_HOST "licentalivedb-default-rtdb.firebaseio.com"
-#define FIREBASE_AUTH "K9re6wdo8C5r860LD0TnPoSAo2I96n1NgMuFP3wJ"
-
-FirebaseData fbdo;
-FirebaseConfig firebaseConfig;
-FirebaseAuth firebaseAuth;
-
-
-// Pins for 74HC595
-const int dataPin = D5;
-const int clockPin = D6;
-const int latchPin = D8;
-
-// Create ShiftRegister74HC595 object with 3 shift registers
-ShiftRegister74HC595<3> sr(dataPin, clockPin, latchPin);
-
-// PWM dimming on TX and RX
-#define TX_LED 1  // GPIO1
-#define RX_LED 3  // GPIO3
-
-// Store brightness (0-100 range)
-int brightnessTX = 0;
-int brightnessRX = 0;
-
-// Web server
+// Creează obiectele
+ShiftRegister74HC595<1> sr(dataPin, clockPin, latchPin);
 ESP8266WebServer server(80);
 
+// Pinii motorului pe Shift Register
+#define IN1 3
+#define IN2 4
+#define IN3 5
+#define IN4 6
 
+int motorSpeed = 10;  // Viteza motorului (delay între pași)
+int desiredAngle = 0; // Unghiul dorit
+int stepsPerRevolution = 2048; // Numărul de pași pentru o revoluție completă
+int currentAngle = 0;
 
-
-// Path pentru Firebase
-String parentPath = "/";
-String childPath[3] = {
-    "led/garageLedDim",
-    "led/guestDim",
-    "/led/bedroomLedDim",
-};
-void streamCallback(MultiPathStreamData stream) {
-    size_t numChild = sizeof(childPath) / sizeof(childPath[0]);
-
-    for (size_t i = 0; i < numChild; i++) {
-        if (stream.get(childPath[i])) {
-            String path = stream.dataPath;
-            String value = stream.value.c_str();
-
-            // Convert the value from string to integer
-            int brightnessPercentage = value.toInt();
-
-            // Validate brightness percentage (must be between 0 and 100)
-            if (brightnessPercentage < 0 || brightnessPercentage > 100) {
-                Serial.printf("Invalid brightness value for %s: %d\n", path.c_str(), brightnessPercentage);
-                continue;
-            }
-
-            // Handle each path
-            if (path == "/led/garageLedDim") {
-                int pwmValue = map(brightnessPercentage, 0, 100, 0, 255); // Map to 0-255
-                analogWrite(TX_GUEST_LED, pwmValue); // Set TX LED (garage)
-                brightnessTX = brightnessPercentage;
-                Serial.printf("Garage LED brightness set to %d%% (PWM: %d)\n", brightnessPercentage, pwmValue);
-
-            } else if (path == "/led/guestDim") {
-                int pwmValue = map(brightnessPercentage, 0, 100, 0, 255); // Map to 0-255
-                analogWrite(RX_BEDROOM_LED, pwmValue); // Set RX LED (guest)
-                brightnessRX = brightnessPercentage;
-                Serial.printf("Guest LED brightness set to %d%% (PWM: %d)\n", brightnessPercentage, pwmValue);
-
-            } else if (path == "/led/bedroomLedDim") {
-                // Example: Update other LEDs connected to the shift register
-                int pwmValue = map(brightnessPercentage, 0, 100, 0, 255); // Map to 0-255
-                sr.set(15, brightnessPercentage > 50); // Example threshold
-                sr.updateRegisters();
-                Serial.printf("Bedroom LED brightness managed by shift register (Brightness: %d%%)\n", brightnessPercentage);
-
-            } else {
-                // Unknown path
-                Serial.printf("Unknown command on path: %s, value: %s\n", path.c_str(), value.c_str());
-            }
-        }
-    }
+// Setăm toate pinii shift register-ului la LOW
+void clearRegisters() {
+  for (int i = 0; i < 8; i++) {
+    sr.set(i, LOW);
+  }
 }
 
+// Scriem starea pinilor
+void writeRegisters() {
+  sr.updateRegisters();
+}
 
-// Firebase stream timeout callback
-void streamTimeoutCallback(bool timeout) {
-    if (timeout) {
-        Serial.println("Stream timed out, resuming...");
+// Setăm un pin individual HIGH sau LOW
+void setRegisterPin(int index, int value) {
+  sr.set(index, value);
+  writeRegisters();
+}
+
+// Funcție pentru rotație în sens orar
+void clockwise(int steps) {
+  for (int i = 0; i < steps; i++) {
+    // Pas 1
+    setRegisterPin(IN1, HIGH);
+    setRegisterPin(IN2, LOW);
+    setRegisterPin(IN3, LOW);
+    setRegisterPin(IN4, LOW);
+    delay(motorSpeed);
+
+    // Pas 2
+    setRegisterPin(IN1, HIGH);
+    setRegisterPin(IN2, HIGH);
+    setRegisterPin(IN3, LOW);
+    setRegisterPin(IN4, LOW);
+    delay(motorSpeed);
+
+    // Pas 3
+    setRegisterPin(IN1, LOW);
+    setRegisterPin(IN2, HIGH);
+    setRegisterPin(IN3, LOW);
+    setRegisterPin(IN4, LOW);
+    delay(motorSpeed);
+
+    // Pas 4
+    setRegisterPin(IN1, LOW);
+    setRegisterPin(IN2, HIGH);
+    setRegisterPin(IN3, HIGH);
+    setRegisterPin(IN4, LOW);
+    delay(motorSpeed);
+
+    // Pas 5
+    setRegisterPin(IN1, LOW);
+    setRegisterPin(IN2, LOW);
+    setRegisterPin(IN3, HIGH);
+    setRegisterPin(IN4, LOW);
+    delay(motorSpeed);
+
+    // Pas 6
+    setRegisterPin(IN1, LOW);
+    setRegisterPin(IN2, LOW);
+    setRegisterPin(IN3, HIGH);
+    setRegisterPin(IN4, HIGH);
+    delay(motorSpeed);
+
+    // Pas 7
+    setRegisterPin(IN1, LOW);
+    setRegisterPin(IN2, LOW);
+    setRegisterPin(IN3, LOW);
+    setRegisterPin(IN4, HIGH);
+    delay(motorSpeed);
+
+    // Pas 8
+    setRegisterPin(IN1, HIGH);
+    setRegisterPin(IN2, LOW);
+    setRegisterPin(IN3, LOW);
+    setRegisterPin(IN4, HIGH);
+    delay(motorSpeed);
+  }
+}
+
+// Funcție pentru rotație în sens antiorar
+void counterclockwise(int steps) {
+  for (int i = 0; i < steps; i++) {
+    // Pașii sunt în ordine inversă
+    clockwise(1); // Simplificare - inversăm ordinea
+  }
+}
+
+// Funcție pentru pagina principală
+void handleRoot() {
+  String html = "<html><body>";
+  html += "<h1>Stepper Motor Control</h1>";
+  html += "<form action=\"/set\" method=\"GET\">";
+  html += "Degrees: <input type=\"number\" name=\"angle\" min=\"-360\" max=\"360\"><br>";
+  html += "Speed: <input type=\"number\" name=\"speed\" min=\"5\" max=\"100\"><br>";
+  html += "<input type=\"submit\" value=\"Set\">";
+  html += "</form>";
+  html += "</body></html>";
+
+  server.send(200, "text/html", html);
+}
+
+// Funcție pentru setarea unghiului și vitezei
+void handleSet() {
+  if (server.hasArg("angle") && server.hasArg("speed")) {
+    desiredAngle = server.arg("angle").toInt();
+    motorSpeed = server.arg("speed").toInt();
+
+    int stepsToMove = (abs(desiredAngle - currentAngle) * stepsPerRevolution) / 360;
+
+    if (desiredAngle > currentAngle) {
+      clockwise(stepsToMove);
+    } else if (desiredAngle < currentAngle) {
+      counterclockwise(stepsToMove);
     }
+
+    currentAngle = desiredAngle;
+
+    server.send(200, "text/plain", "Motor moved to: " + String(desiredAngle) + " degrees with speed: " + String(motorSpeed));
+  } else {
+    server.send(400, "text/plain", "Invalid request");
+  }
 }
 
 void setup() {
   Serial.begin(115200);
 
-  // Configure pins for PWM
-  pinMode(TX_GUEST_LED, OUTPUT);
-  pinMode(RX_BEDROOM_LED, OUTPUT);
-
-  // WiFi setup
+  // Configurare Wi-Fi
   WiFi.begin(ssid, password);
+  Serial.print("Connecting to Wi-Fi");
   while (WiFi.status() != WL_CONNECTED) {
     delay(500);
     Serial.print(".");
   }
-  Serial.println("\nConnected to WiFi");
+  Serial.println("\nConnected to Wi-Fi");
+  Serial.println("IP address: ");
   Serial.println(WiFi.localIP());
-firebaseConfig.host = FIREBASE_HOST;
-    firebaseConfig.signer.tokens.legacy_token = FIREBASE_AUTH;
-    Firebase.begin(&firebaseConfig, &firebaseAuth);
-    Firebase.reconnectWiFi(true);
 
-    if (!Firebase.beginMultiPathStream(fbdo, parentPath)) {
-        Serial.printf("Stream begin error: %s\n", fbdo.errorReason().c_str());
-    } else {
-        Firebase.setMultiPathStreamCallback(fbdo, streamCallback, streamTimeoutCallback);
-    }
+  // Configurare pinii shift register
+  sr.setAllLow();
 
-  // Web server routes
-  server.on("/", []() {
-    String html = "<h1>Control LEDs</h1>";
-    html += "<form action='/set' method='GET'>";
-    html += "TX LED Brightness (0-100): <input type='number' name='tx' min='0' max='100' value='" + String(brightnessTX) + "'><br>";
-    html += "RX LED Brightness (0-100): <input type='number' name='rx' min='0' max='100' value='" + String(brightnessRX) + "'><br>";
-    html += "<input type='submit' value='Set Brightness'>";
-    html += "</form>";
-    server.send(200, "text/html", html);
-  });
-
-  server.on("/set", []() {
-    if (server.hasArg("tx")) {
-      int inputTX = server.arg("tx").toInt();
-      if (inputTX >= 0 && inputTX <= 100) {
-        brightnessTX = inputTX;
-        int pwmValue = map(brightnessTX, 0, 100, 0, 255);  // Map 0-100 to 0-255
-        analogWrite(TX_GUEST_LED, pwmValue);
-        Serial.printf("TX LED brightness set to %d%% (PWM: %d)\n", brightnessTX, pwmValue);
-      } else {
-        Serial.println("Invalid TX value. Must be between 0-100.");
-      }
-    }
-    if (server.hasArg("rx")) {
-      int inputRX = server.arg("rx").toInt();
-      if (inputRX >= 0 && inputRX <= 100) {
-        brightnessRX = inputRX;
-        int pwmValue = map(brightnessRX, 0, 100, 0, 255);  // Map 0-100 to 0-255
-        analogWrite(RX_BEDROOM_LED, pwmValue);
-        Serial.printf("RX LED brightness set to %d%% (PWM: %d)\n", brightnessRX, pwmValue);
-      } else {
-        Serial.println("Invalid RX value. Must be between 0-100.");
-      }
-    }
-    server.sendHeader("Location", "/");
-    server.send(303);
-  });
-
+  // Configurare server web
+  server.on("/", handleRoot);
+  server.on("/set", handleSet);
   server.begin();
+  Serial.println("HTTP server started");
 }
 
 void loop() {

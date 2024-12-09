@@ -99,6 +99,21 @@ export const turnOffHallLed = async () => {
   }
 };
 
+export const turnOnAutoModeForHallLed = async () => {
+  try {
+    await set(ref(database, "/led/hallLed"), "auto");
+  } catch (error) {
+    Alert.alert("Eroare la trimiterea autoMode for Hall Led");
+  }
+};
+
+export const turnOffAutoModeForHallLed = async () => {
+  try {
+    await set(ref(database, "/led/hallLed"), "off");
+  } catch (error) {
+    Alert.alert("Eroare la trimiterea  stop autoMode for Hall Led");
+  }
+};
 //Sliders
 export const bedRoomSlider = async (value) => {
   try {
@@ -291,5 +306,21 @@ export const resetESP = async () => {
     await set(ref(database, "/statusESP8266/reset"), "reset");
   } catch (error) {
     Alert.alert("Eroare la transmiterea comenzii pentru resetare");
+  }
+};
+
+export const armHouse = async () => {
+  try {
+    await set(ref(database, "/security/arm"), "arm");
+  } catch (error) {
+    Alert.alert("Eroare la armare");
+  }
+};
+
+export const disarmHouse = async () => {
+  try {
+    await set(ref(database, "/security/arm"), "disarm");
+  } catch (error) {
+    Alert.alert("Eroare la disarm");
   }
 };

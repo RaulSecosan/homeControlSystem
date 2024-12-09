@@ -1,4 +1,4 @@
-import { StyleSheet, Text, View, Pressable } from "react-native";
+import { StyleSheet, Text, Pressable } from "react-native";
 
 import {
   turnOnDoorLed,
@@ -15,6 +15,8 @@ import {
   closeGarageGate,
   turnOffHallLed,
   turnOnHallLed,
+  turnOnAutoModeForHallLed,
+  turnOffAutoModeForHallLed,
   turnOnLivingLed,
   turnOffLivingLed,
   bedRoomSlider,
@@ -28,6 +30,8 @@ import {
   openLivingFan,
   closeLivingFan,
   resetESP,
+  armHouse,
+  disarmHouse,
 } from "./SensorsCommunication";
 
 export default function ButtonOriginal({
@@ -35,12 +39,22 @@ export default function ButtonOriginal({
   name,
   link = "",
   action,
-}) {
+  children,
+}) 
+
+{
   function pressHandlerOutside() {
     console.log(action);
     // console.log(link.length);
     link.length !== 0 ? navigation.navigate(link) : "";
 
+
+    //pentru GroupButtonsWithAutoFunction
+    if (typeof action === 'function') {
+      action = action(); 
+    } 
+
+      
     switch (action) {
       case "turnOnDoorLed":
         turnOnDoorLed();
@@ -59,6 +73,12 @@ export default function ButtonOriginal({
         break;
       case "turnOffHallLed":
         turnOffHallLed();
+        break;
+      case "turnOnAutoModeForHallLed":
+        turnOnAutoModeForHallLed();
+        break;
+      case "turnOffAutoModeForHallLed":
+        turnOffAutoModeForHallLed();
         break;
       case "turnOnLivingLed":
         turnOnLivingLed();
@@ -140,6 +160,12 @@ export default function ButtonOriginal({
       case "resetESP":
         resetESP();
         break;
+      
+      case "armHouse":
+        armHouse();
+        break;
+      case "disarmHouse":
+        disarmHouse();
       default:
         console.log("ai gresit comanda sau nu a fost inca initializata");
     }
@@ -150,7 +176,9 @@ export default function ButtonOriginal({
       onPress={pressHandlerOutside}
       style={({ pressed }) => (pressed ? [styles.pressed] : "")}
     >
-      <Text style={styles.button}>{name}</Text>
+      {/* <Text style={styles.button}>{name}</Text> */}
+      {children ? children : <Text style={styles.button}>{name}</Text>}
+
     </Pressable>
   );
 }

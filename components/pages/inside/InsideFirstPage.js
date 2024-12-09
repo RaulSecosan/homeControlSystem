@@ -19,7 +19,8 @@ export default function Inside({ navigation }) {
       </View>
 
       <View style={styles.topButton}>
-        <StatusButton name="X" link="Status" navigation={navigation} />
+        <StatusButton name="X" link="Alarm" navigation={navigation} />
+        {/* <StatusButton name="X" link="Status" navigation={navigation} /> */}
       </View>
 
       <GroupButtons
@@ -28,7 +29,6 @@ export default function Inside({ navigation }) {
         buttonLeftAction="turnOnHallLed"
         buttonRightName="Off"
         buttonRightAction="turnOffHallLed"
-
       />
 
       <View style={styles.insideBox}>
@@ -62,7 +62,11 @@ export default function Inside({ navigation }) {
       </View>
 
       <View style={styles.bottomButtons}>
-        <DirectionButton name={"→"} link={"InsideSecondPage"} navigation={navigation} />
+        <DirectionButton
+          name={"→"}
+          link={"InsideSecondPage"}
+          navigation={navigation}
+        />
         <OneButton name="H" link="Home" navigation={navigation} />
       </View>
     </View>
@@ -112,10 +116,10 @@ const styles = StyleSheet.create({
     flexDirection: "row-reverse",
     alignItems: "center",
   },
-  topButton:{
+  topButton: {
     position: "absolute",
     top: "7%",
     left: "5%",
-    opacity: 0.4
+    opacity: 0.4,
   },
 });

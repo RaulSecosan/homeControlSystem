@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { View, Text, StyleSheet, ImageBackground } from 'react-native';
 import Slider from '@react-native-community/slider';
 import Title from '../../Title';
-import GroupButtons from "../../GroupButtons";
+import GroupButtons, {GroupButtonsWithAutoFunction} from "../../GroupButtons";
 import DirectionButton from "../../DirectionButton";
 import { bedRoomSlider, guestSlider } from '../../SensorsCommunication';
 
@@ -26,7 +26,7 @@ const CustomSlider = ({navigation}) => {
         </View>
 
         <View style={styles.group}>
-          <GroupButtons
+          <GroupButtonsWithAutoFunction
             paragraphName="Hall"
             buttonLeftName="On"
             buttonLeftAction="turnOnHallLed"

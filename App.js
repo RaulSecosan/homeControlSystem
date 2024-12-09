@@ -7,6 +7,7 @@ import Home from "./components/pages/Home";
 import Outside from "./components/pages/outside/Outside";
 import Inside from "./components/pages/inside/InsideFirstPage";
 import StatusESP8266 from "./components/pages/inside/StatusESP8266";
+import Alarm from "./components/pages/inside/Alarm";
 
 import InsideSecondPage from "./components/pages/inside/InsideSecondPage";
 import Sensors from "./components/pages/inside/Sensors";
@@ -33,6 +34,8 @@ export default function App() {
           <Stack.Screen name="Outside" component={Outside} />
           <Stack.Screen name="Inside" component={Inside} />
           <Stack.Screen name="Status" component={StatusESP8266} />
+          <Stack.Screen name="Alarm" component={Alarm} />
+
 
           <Stack.Screen name="InsideSecondPage" component={InsideSecondPage} />
           <Stack.Screen name="Sensors" component={Sensors} />

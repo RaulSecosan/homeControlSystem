@@ -2,11 +2,7 @@ import { StyleSheet, Text, View } from "react-native";
 
 import { TitleForStatusPage } from "../../Title";
 import { DirectionButtonStatus } from "../../DirectionButton";
-import GroupButtons, {
-  OneButton,
-  OneButtonForStatusPage,
-  StatusPageButton,
-} from "../../GroupButtons";
+import { OneButtonForStatusPage, StatusPageButton } from "../../GroupButtons";
 import { useState, useEffect } from "react";
 import { ref, onValue } from "firebase/database";
 import { database } from "../../firebase";
@@ -106,18 +102,6 @@ export default function Status({ navigation }) {
         </View>
       </View>
 
-      {/* <View style={styles.rowBox}>
-        <View style={styles.displayBox}>
-          <Text style={styles.displayTitleBox}>Door status</Text>
-          <Text style={styles.displayNumber}>Closed</Text>
-        </View>
-
-        <View style={styles.displayBox}>
-          <Text style={styles.displayTitleBox}>ok</Text>
-          <Text style={styles.displayNumber}>3 bar</Text>
-        </View>
-      </View> */}
-
       <View style={styles.button}>
         <OneButtonForStatusPage
           paragraphName="Reset ESP8266"
@@ -129,7 +113,7 @@ export default function Status({ navigation }) {
       <View style={styles.bottomButtons}>
         <DirectionButtonStatus
           name={"←"}
-          link={"Inside"}
+          link={"Alarm"}
           navigation={navigation}
         />
         <StatusPageButton name="H" link="Inside" navigation={navigation} />
@@ -153,19 +137,6 @@ const styles = StyleSheet.create({
     flexDirection: "row",
   },
 
-  //   displayBox: {
-  //     borderColor: "red",
-  //     margin: 10,
-  //     backgroundColor: "#382929",
-  //     padding: 15,
-  //     width: 150,
-  //     // maxWidth: "80%",
-  //     // minWidth: "40%",
-
-  //     // height: 80,
-  //     height: "90%",
-  //     borderRadius: 20,
-  //   },
 
   displayBox: {
     borderColor: "red",

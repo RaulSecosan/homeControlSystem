@@ -563,6 +563,7 @@ void checkLightAndMotion() {
         String lightStatus = "";
       if (currentIsNight) {
             manualControlHallLed = false;
+            Firebase.setString(firebaseData, "/led/hallLed", 'auto');
             lightStatus = "Night";
         } else {
           lightStatus = "Day";

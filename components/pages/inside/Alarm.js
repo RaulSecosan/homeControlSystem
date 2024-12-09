@@ -2,9 +2,7 @@ import { StyleSheet, Text, View } from "react-native";
 
 import { TitleForStatusPage } from "../../Title";
 import { DirectionButtonStatus } from "../../DirectionButton";
-import GroupButtons, {
-  StatusPageButton,
-} from "../../GroupButtons";
+import GroupButtons, { StatusPageButton } from "../../GroupButtons";
 import { useState, useEffect } from "react";
 import { ref, onValue } from "firebase/database";
 import { database } from "../../firebase";
@@ -35,7 +33,7 @@ export default function Alarm({ navigation }) {
       }, 1000);
     } else {
       clearInterval(colorInterval);
-      setBorderColor("#741638"); // Reset to default color 
+      setBorderColor("#741638"); // Reset to default color
     }
 
     return () => {
@@ -98,7 +96,7 @@ const styles = StyleSheet.create({
   text: {
     color: "white",
     fontSize: 25,
-    fontStyle: "italic"
+    fontStyle: "italic",
   },
 
   box: {

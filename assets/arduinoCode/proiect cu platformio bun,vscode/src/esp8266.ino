@@ -547,6 +547,7 @@ const unsigned long lightOnDuration = 5000;  // Durata în milisecunde (5 secund
 void checkLightAndMotion() {
     static bool lastMotionDetected = false;
     static bool lastIsNight = false;
+    static bool lastManualControlHallLed = false;
 
     bool currentMotionDetected = (digitalRead(PIR_PIN) == HIGH);
     bool currentIsNight = (digitalRead(LDR_PIN) == HIGH);
@@ -563,13 +564,15 @@ void checkLightAndMotion() {
         String lightStatus = "";
       if (currentIsNight) {
             manualControlHallLed = false;
-            Firebase.setString(firebaseData, "/led/hallLed", 'auto');
+            Firebase.setString(firebaseData, "/led/hallLedStatus", "auto");
             lightStatus = "Night";
         } else {
+          
+          Firebase.setString(firebaseData, "/led/hallLedStatus", "manual");
           lightStatus = "Day";
+          manualControlHallLed = true;
         }
 
-        // String lightStatus = currentIsNight ? "Night" : "Day";
         Firebase.setString(firebaseData, "/sensorData/isDay", lightStatus);
         lastIsNight = currentIsNight;
         // Serial.println("Actualizat starea de lumină (zi/noapte) în Firebase.");
@@ -580,7 +583,7 @@ void checkLightAndMotion() {
         lastMotionTime = millis();  
     }
 
-  // Stingem LED-ul doar dacă nu este mișcare și este noapte
+    // Dacă e noapte, nu e mișcare și nu e modul manual, stingem LED-ul după o perioadă
         if (!currentMotionDetected && currentIsNight && !manualControlHallLed && millis() - lastMotionTime > lightOnDuration) {
             turnOffHallLed();
         }
@@ -684,7 +687,7 @@ FirebaseData fbdo;
 FirebaseData stream;
 
 String parentPath = "/";  
-String childPath[18] = {
+String childPath[19] = {
   "/led/guest/ledDim",
   "/led/bedRoom/ledDim",
   "/led/guest/led",
@@ -692,6 +695,7 @@ String childPath[18] = {
   "/led/garageLed",
   "/led/doorLed",
   "/led/hallLed",
+  "/led/hallLedStatus",
   "/led/livingLed",
   "/door/guestDoor",
   "/door/frontDoor",
@@ -779,13 +783,28 @@ void streamCallback(MultiPathStreamData stream) {
                 if (value == "on") {
                     turnOnHallLed();
                     manualControlHallLed = true; 
+                    Firebase.setString(firebaseData, "/led/hallLedStatus", "manual");
+
                 } else if (value == "off") {
                     turnOffHallLed();
                     manualControlHallLed = true; 
-                 } else if (value == "auto") {
+                    Firebase.setString(firebaseData, "/led/hallLedStatus", "manual");
+
+                 } 
+                //  else if (value == "auto") {
+                //     manualControlHallLed = false; // Permitem controlul automat
+                //    }
+                }
+            
+               else if (path == "/led/hallLedStatus") {
+                if (value == "auto") {
                     manualControlHallLed = false; // Permitem controlul automat
                    }
+                else if (value == "manual"){
+                      manualControlHallLed = true; 
+
                 }
+               }
 
             //  else if (path == "/led/hallLed") {
             //     value == "on" ? turnOnHallLed() : turnOffHallLed();
@@ -847,6 +866,9 @@ void streamCallback(MultiPathStreamData stream) {
                 if (value == "arm") {
                       // armHouse();
                           isHouseArmed = true; 
+                              Firebase.setString(firebaseData, "/security/alert", "Clear");
+
+
 
                 } else if (value == "disarm") {
                     disarmHouse(); 

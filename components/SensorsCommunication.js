@@ -101,7 +101,7 @@ export const turnOffHallLed = async () => {
 
 export const turnOnAutoModeForHallLed = async () => {
   try {
-    await set(ref(database, "/led/hallLed"), "auto");
+    await set(ref(database,"/led/hallLedStatus"), "auto");
   } catch (error) {
     Alert.alert("Eroare la trimiterea autoMode for Hall Led");
   }
@@ -109,7 +109,7 @@ export const turnOnAutoModeForHallLed = async () => {
 
 export const turnOffAutoModeForHallLed = async () => {
   try {
-    await set(ref(database, "/led/hallLed"), "off");
+    await set(ref(database, "/led/hallLedStatus"), "manual");
   } catch (error) {
     Alert.alert("Eroare la trimiterea  stop autoMode for Hall Led");
   }

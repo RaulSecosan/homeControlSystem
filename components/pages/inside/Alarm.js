@@ -25,7 +25,7 @@ export default function Alarm({ navigation }) {
   useEffect(() => {
     let colorInterval;
 
-    if (sensorData && sensorData["alert"] !== "Disarmed") {
+    if ((sensorData && sensorData["alert"] !== "Disarmed") && (sensorData && sensorData["alert"] !== "Clear")) {
       colorInterval = setInterval(() => {
         setBorderColor((prevColor) =>
           prevColor === "orange" ? "red" : "orange"

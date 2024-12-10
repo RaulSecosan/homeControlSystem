@@ -56,7 +56,7 @@ export function GroupButtonsWithAutoFunction({
   const [autoHallLed, setAutoHallLed] = useState(null);
 
   useEffect(() => {
-    const sensorDataRef = ref(database, "/led/hallLed");
+    const sensorDataRef = ref(database, "/led/hallLedStatus");
 
     const unsubscribe = onValue(sensorDataRef, (snapshot) => {
       setAutoHallLed(snapshot.val());
@@ -95,7 +95,7 @@ export function GroupButtonsWithAutoFunction({
         <ButtonOriginal action={handlePress}>
           <Image
             source={
-              mode === "turnOnAutoModeForHallLed" || autoHallLed == 'auto'
+                autoHallLed == 'auto'
                 ? require("../assets/images/inside/auto2.png")
                 : require("../assets/images/inside/noAuto.png")
             }

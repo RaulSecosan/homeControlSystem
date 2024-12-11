@@ -53,17 +53,30 @@ const char MAIN_page[] PROGMEM = R"=====(
       xhttp.send();
     }
 
+
+    function motionStatus() {
+      var xhttp = new XMLHttpRequest();
+      xhttp.onreadystatechange = function() {
+        if (this.readyState == 4 && this.status == 200) {
+          document.getElementById("motion-status").innerText = this.responseText;
+        }
+      };
+      xhttp.open("GET", "/motion_status", true);
+      xhttp.send();
+    }
+
+
     // Actualizează temperatura, umiditatea și starea senzorilor la fiecare 5 secunde
     setInterval(function() {
       updateTemperatureHumidity();
       updateSensorsStatus();
     }, 5000);
 
+    setInterval(function() {
+      motionStatus();
+    }, 2000);
 
-     function setCustomSpeed() {
-      var speedValue = document.getElementById("speedInput").value;
-      sendRequest('/setCustomSpeed?value=' + speedValue);
-    }
+
 
   </script>
 
@@ -77,6 +90,9 @@ const char MAIN_page[] PROGMEM = R"=====(
   
   <h2>Status senzori</h2>
   <p id="sensors-status">--</p>
+  
+  <p id="motion-status">--</p>
+
 
   <h2>Doors</h2>
   <button onclick="sendRequest('/openGuestDoor')">Deschide Guest</button>

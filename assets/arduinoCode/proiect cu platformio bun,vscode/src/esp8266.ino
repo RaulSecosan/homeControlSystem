@@ -230,8 +230,6 @@ void handleSensorsStatus() {
   int fireState = digitalRead(FIRE_SENSOR_PIN);
   int gasState = analogRead(GAS_SENSOR_PIN);
   int rainValue = digitalRead(RAIN_SENSOR_PIN);
-  int pirValue = digitalRead(PIR_PIN);
-  int hallState = digitalRead(HALL_SENSOR_PIN); 
 
   if (fireState == LOW) {
     message += "Fire detected! ";
@@ -242,22 +240,17 @@ void handleSensorsStatus() {
 
   message += "Gas Value: " + String(gasState) + "\n";
   message += "Rain Value: " + String(rainValue) + "\n";
+ 
+  server.send(200, "text/plain", message);
+}
+
+void handleMotionStatus() {
+  String message = "Status: ";
+  
+  int pirValue = digitalRead(PIR_PIN);
+  int hallState = digitalRead(HALL_SENSOR_PIN); 
+
   message += "Door Status: " + String(hallState) + "\n";
-
-  // if (gasState == LOW) {
-  //   message += "Gas detected! ";
-
-  // } else {
-  //   message += "No gas. ";
-
-  // }
-
-  // if (rainValue < 800) {
-  //   message += "It's raining. ";
-
-  // } else {
-  //   message += "No rain. ";
-  // }
 
   if (pirValue == HIGH) {
     message += "Motion Detected!";
@@ -544,20 +537,72 @@ const unsigned long lightOnDuration = 5000;  // Durata în milisecunde (5 secund
 
 
 
-void checkLightAndMotion() {
-    static bool lastMotionDetected = false;
-    static bool lastIsNight = false;
-    static bool lastManualControlHallLed = false;
+// void checkLightAndMotion() {
+//     static bool lastMotionDetected = false;
+//     static bool lastIsNight = false;
+//     static bool lastManualControlHallLed = false;
 
+//     bool currentMotionDetected = (digitalRead(PIR_PIN) == HIGH);
+//     bool currentIsNight = (digitalRead(LDR_PIN) == HIGH);
+
+//     if (currentMotionDetected != lastMotionDetected) {
+//         String motionStatus = currentMotionDetected ? "Motion Detected!" : "No Motion";
+//         Firebase.setString(firebaseData, "/sensorData/motion", motionStatus);
+//         lastMotionDetected = currentMotionDetected;
+//         // Serial.println("Actualizat starea senzorului de mișcare în Firebase.");
+//     }
+
+//     if (currentIsNight != lastIsNight) {
+
+//         String lightStatus = "";
+//       if (currentIsNight) {
+//             manualControlHallLed = false;
+//             Firebase.setString(firebaseData, "/led/hallLedStatus", "auto");
+//             lightStatus = "Night";
+//         } else {
+          
+//           Firebase.setString(firebaseData, "/led/hallLedStatus", "manual");
+//           lightStatus = "Day";
+//           manualControlHallLed = true;
+//         }
+
+//         Firebase.setString(firebaseData, "/sensorData/isDay", lightStatus);
+//         lastIsNight = currentIsNight;
+//         // Serial.println("Actualizat starea de lumină (zi/noapte) în Firebase.");
+//     }
+
+//     if (currentMotionDetected && currentIsNight && !manualControlHallLed) {
+//         turnOnHallLed();
+//         lastMotionTime = millis();  
+//     }
+
+//     // Dacă e noapte, nu e mișcare și nu e modul manual, stingem LED-ul după o perioadă
+//         if (!currentMotionDetected && currentIsNight && !manualControlHallLed && millis() - lastMotionTime > lightOnDuration) {
+//             turnOffHallLed();
+//         }
+// }
+
+
+
+void checkMotion(){
     bool currentMotionDetected = (digitalRead(PIR_PIN) == HIGH);
-    bool currentIsNight = (digitalRead(LDR_PIN) == HIGH);
+static bool lastMotionDetected = false;
 
-    if (currentMotionDetected != lastMotionDetected) {
+   if (currentMotionDetected != lastMotionDetected) {
         String motionStatus = currentMotionDetected ? "Motion Detected!" : "No Motion";
         Firebase.setString(firebaseData, "/sensorData/motion", motionStatus);
         lastMotionDetected = currentMotionDetected;
         // Serial.println("Actualizat starea senzorului de mișcare în Firebase.");
     }
+}
+void checkLightAndMotion() {
+    static bool lastIsNight = false;
+    static bool lastManualControlHallLed = false;
+
+    bool currentIsNight = (digitalRead(LDR_PIN) == HIGH);
+bool currentMotionDetected = (digitalRead(PIR_PIN) == HIGH);
+
+ 
 
     if (currentIsNight != lastIsNight) {
 
@@ -567,7 +612,10 @@ void checkLightAndMotion() {
             Firebase.setString(firebaseData, "/led/hallLedStatus", "auto");
             lightStatus = "Night";
         } else {
-          
+        
+            // Dacă LED-ul era controlat automat și este încă aprins, îl stingem acum
+            turnOffHallLed();
+        
           Firebase.setString(firebaseData, "/led/hallLedStatus", "manual");
           lightStatus = "Day";
           manualControlHallLed = true;
@@ -588,6 +636,8 @@ void checkLightAndMotion() {
             turnOffHallLed();
         }
 }
+
+
 
 
 // Funcție pentru a reveni la controlul automat după un anumit timp (opțional)
@@ -1047,6 +1097,9 @@ if (!Firebase.beginMultiPathStream(stream, parentPath)) {
   server.on("/", handleRoot);
   server.on("/temperature_humidity", handleTemperatureHumidity);
   server.on("/sensors_status", handleSensorsStatus);
+  server.on("/motion_status", handleMotionStatus);
+
+  
 
   //Buzzer
   server.on("/onBuzzer", activateBuzzer);
@@ -1119,6 +1172,7 @@ void loop() {
    if (currentTime - lastHallSensorReadTime >= hallSensorInterval) {
     lastHallSensorReadTime = currentTime;
     displayHallSensorState();
+    checkMotion();
   }
 
   if (currentTime - lastSensorReadTime >= sensorReadInterval) {
@@ -1149,6 +1203,5 @@ void reportResetReason() {
     // Serial.print("Motivul resetării: ");
     // Serial.println(resetReason);
 
-    // Trimitem motivul resetării pe Firebase
- Firebase.setString(firebaseData, "/statusESP8266/resetReason", resetReason);
+     Firebase.setString(firebaseData, "/statusESP8266/resetReason", resetReason);
 }

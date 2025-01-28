@@ -9,6 +9,8 @@
 #include <DHT_U.h>
 #include "bipolarstepper.h"
 
+#include <ArduinoOTA.h>
+
 
 
 // WiFi credentials
@@ -45,6 +47,13 @@ ShiftRegister74HC595<3> sr(dataPin, clockPin, latchPin);
 // PWM dimming on TX and RX
 #define TX_GUEST_LED 1  // GPIO1
 #define RX_BEDROOM_LED 3  // GPIO3
+
+// #define TX_GUEST_LED D1  // GPIO1
+// #define RX_BEDROOM_LED D2  // GPIO3
+
+// #define DHT_PIN 1
+// #define PIR_PIN 3  
+
 //Led
 #define GARAGE_LEFT_LED 10
 #define GARAGE_RIGHT_LED 11
@@ -1023,6 +1032,8 @@ void setup() {
 
   sr.setAllLow();
 
+  WiFi.mode(WIFI_STA);
+
   WiFi.begin(ssid, password);
 
   while (WiFi.status() != WL_CONNECTED) {
@@ -1132,6 +1143,14 @@ if (!Firebase.beginMultiPathStream(stream, parentPath)) {
   server.begin();
 
   Serial.println("HTTP server started");
+
+  // Configurare OTA
+  // Nume device (opțional)
+    ArduinoOTA.setHostname("esp8266_Raul");
+  // Parolă OTA (opțional):
+    ArduinoOTA.setPassword("xseco");
+    ArduinoOTA.begin();
+
 }
 
 
@@ -1160,6 +1179,9 @@ void loop() {
     lastSensorReadTime = currentTime;
     readAllSensors();
   }
+
+  // Tratare cereri OTA
+  ArduinoOTA.handle();
 }
 
 

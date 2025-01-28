@@ -172,7 +172,6 @@ void checkRain() {
 
 void checkFire() {
     static bool lastFireDetected = false;
-
     bool currentFireDetected = (digitalRead(FIRE_SENSOR_PIN) == LOW);
 
     if (currentFireDetected != lastFireDetected) {
@@ -185,9 +184,7 @@ void checkFire() {
         } else {
             deactivateBuzzer();
         }
-
-    } 
-        
+    }     
 }
 
 
@@ -397,17 +394,11 @@ void setGuestWindowPosition(int position) {
 }
 
 void openGuestWindow() {
-            // setServoPosition(GUEST_WINDOW, 25);
-                        setServoPosition(GUEST_WINDOW, 5);
-
-
+   setServoPosition(GUEST_WINDOW, 5);
 }
 
 void closeGuestWindow() {
-          // setServoPosition(GUEST_WINDOW, 104);
-                    setServoPosition(GUEST_WINDOW, 89);
-
-
+    setServoPosition(GUEST_WINDOW, 89);
 }
 
 void setBedRoomWindowPosition(int position) {
@@ -415,17 +406,11 @@ void setBedRoomWindowPosition(int position) {
 }
 
 void openBedRoomWindow() {
-          // setServoPosition(BED_ROOM_WINDOW, 135);
-                    setServoPosition(BED_ROOM_WINDOW, 130);
-
-
+    setServoPosition(BED_ROOM_WINDOW, 130);
 }
 
 void closeBedRoomWindow() {
-        // setServoPosition(BED_ROOM_WINDOW, 28);
-                setServoPosition(BED_ROOM_WINDOW, 48);
-
-
+    setServoPosition(BED_ROOM_WINDOW, 48);
 }
 
 
@@ -434,15 +419,11 @@ void setLivingWindowPosition(int position) {
 }
 
 void openLivingWindow() {
-  // setLivingWindowPosition(115);
-      setServoPosition(LIVING_WINDOW, 110);
-
+    setServoPosition(LIVING_WINDOW, 120);
 }
 
 void closeLivingWindow() {
-  // setLivingWindowPosition(10);
-      setServoPosition(LIVING_WINDOW, 20); 
-
+    setServoPosition(LIVING_WINDOW, 25); 
 }
 
 
@@ -1014,7 +995,7 @@ void displayHallSensorState() {
 
   int hallState = digitalRead(HALL_SENSOR_PIN); 
   if (hallState != lastHallState) { // Actualizăm Firebase doar dacă starea s-a schimbat
-    String doorStatus = (hallState == LOW) ? "closed" : "opened";
+    String doorStatus = (hallState == LOW) ? "Closed" : "Opened";
     Firebase.setString(firebaseData, "/sensorData/doorStatus", doorStatus);
     lastHallState = hallState; // Actualizăm starea anterioară
   }

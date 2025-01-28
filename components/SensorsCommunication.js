@@ -114,6 +114,25 @@ export const turnOffAutoModeForHallLed = async () => {
     Alert.alert("Eroare la trimiterea  stop autoMode for Hall Led");
   }
 };
+
+
+
+export const turnOnAutoFanMode = async () => {
+  try {
+    await set(ref(database,"/motor/fanStatus"), "auto");
+  } catch (error) {
+    Alert.alert("Eroare la trimiterea autoMode for Hall Led");
+  }
+};
+
+export const turnOffAutoFanMode = async () => {
+  try {
+    await set(ref(database, "/motor/fanStatus"), "manual");
+  } catch (error) {
+    Alert.alert("Eroare la trimiterea  stop autoMode for Hall Led");
+  }
+};
+
 //Sliders
 export const bedRoomSlider = async (value) => {
   try {
@@ -129,6 +148,17 @@ export const bedRoomSlider = async (value) => {
 export const guestSlider = async (value) => {
   try {
     await set(ref(database, "/led/guest/ledDim"), value);
+  } catch (error) {
+    Alert.alert(
+      "Eroare",
+      "Nu s-a putut actualiza valoarea slider-ului în Firebase"
+    );
+  }
+};
+
+export const fanTemperatureSlider = async (value) => {
+  try {
+    await set(ref(database, "/motor/temperatureForStartingFan"), value);
   } catch (error) {
     Alert.alert(
       "Eroare",

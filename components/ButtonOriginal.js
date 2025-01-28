@@ -17,6 +17,8 @@ import {
   turnOnHallLed,
   turnOnAutoModeForHallLed,
   turnOffAutoModeForHallLed,
+  turnOnAutoFanMode,
+  turnOffAutoFanMode,
   turnOnLivingLed,
   turnOffLivingLed,
   bedRoomSlider,
@@ -153,6 +155,13 @@ export default function ButtonOriginal({
         break;
       case "openLivingFan":
         openLivingFan();
+        break;
+      
+      case "turnOnAutoFanMode":
+        turnOnAutoFanMode();
+        break;
+      case "turnOffAutoFanMode":
+        turnOffAutoFanMode();
         break;
       case "closeLivingFan":
         closeLivingFan();

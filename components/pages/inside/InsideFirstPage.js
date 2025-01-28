@@ -24,7 +24,7 @@ export default function Inside({ navigation }) {
       </View>
 
       <GroupButtons
-        paragraphName="Hall Lights"
+        paragraphName="Hallway Lights"
         buttonLeftName="On"
         buttonLeftAction="turnOnHallLed"
         buttonRightName="Off"

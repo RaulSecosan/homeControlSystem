@@ -31,7 +31,7 @@ export default function App({ navigation }) {
           buttonRightName="Off"
         /> */}
         <GroupButtons
-          paragraphName="Lumini de la Intrare"
+          paragraphName="Front Door Lights"
           buttonLeftName="On"
           buttonLeftAction="turnOnDoorLed"
           buttonRightName="Off"
@@ -39,7 +39,7 @@ export default function App({ navigation }) {
         />
 
         <GroupButtons
-          paragraphName="Lumini de la Garaj"
+          paragraphName="Garage Lights"
           buttonLeftName="On"
           buttonLeftAction="turnOnGarageLed"
           buttonRightName="Off"
@@ -47,7 +47,7 @@ export default function App({ navigation }) {
         />
 
         <GroupButtons
-          paragraphName="Usa garaj"
+          paragraphName="Garage Gate"
           buttonLeftName="Open"
           buttonLeftAction="openGarageGate"
           buttonRightName="Close"

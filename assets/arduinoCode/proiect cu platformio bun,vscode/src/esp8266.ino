@@ -645,6 +645,9 @@ void  displayTemperatureHumidity() {
     float currentTemperature = dht.readTemperature();
     float currentHumidity = dht.readHumidity();
 
+
+    controlFanBasedOnTemperature(currentTemperature);
+
     // Verificăm dacă citirea senzorului este validă
     if (isnan(currentTemperature) || isnan(currentHumidity)) {
         Serial.println("Eroare la citirea senzorului DHT!");
@@ -679,7 +682,26 @@ void stopFan() {
 }
 
 
-
+// Variabile globale
+String fanStatus = "manual"; 
+String fanCommand = "stop"; 
+int temperatureThreshold = 35; // Prag implicit pentru temperatura din Firebase
+// Functia pentru controlul ventilatorului pe baza temperaturii
+void controlFanBasedOnTemperature(int currentTemperature) {
+    if (fanStatus == "auto") {
+        if (currentTemperature >= temperatureThreshold) {
+            startFan();
+        } else {
+            stopFan();
+        }
+    } else if (fanStatus == "manual") {
+        if (fanCommand == "start") {
+            startFan();
+        } else if (fanCommand == "stop") {
+            stopFan();
+        }
+    }
+}
 
  // Variabilă globală pentru a menține starea alarmei
 bool isAlarmTriggered = false;
@@ -727,7 +749,7 @@ FirebaseData fbdo;
 FirebaseData stream;
 
 String parentPath = "/";  
-String childPath[19] = {
+String childPath[21] = {
   "/led/guest/ledDim",
   "/led/bedRoom/ledDim",
   "/led/guest/led",
@@ -745,6 +767,8 @@ String childPath[19] = {
   "/window/livingWindow",
   "/window/bedRoomWindow",
   "/motor/fan",
+  "/motor/fanStatus",
+  "/motor/temperatureForStartingFan",
   "/statusESP8266/reset",
   "/security",
 };
@@ -831,9 +855,7 @@ void streamCallback(MultiPathStreamData stream) {
                     Firebase.setString(firebaseData, "/led/hallLedStatus", "manual");
 
                  } 
-                //  else if (value == "auto") {
-                //     manualControlHallLed = false; // Permitem controlul automat
-                //    }
+               
                 }
             
                else if (path == "/led/hallLedStatus") {
@@ -846,11 +868,6 @@ void streamCallback(MultiPathStreamData stream) {
                 }
                }
 
-            //  else if (path == "/led/hallLed") {
-            //     value == "on" ? turnOnHallLed() : turnOffHallLed();
-            // } 
-            
-            
             
             else if (path == "/led/livingLed") {
                 if (value == "on") {
@@ -896,8 +913,19 @@ void streamCallback(MultiPathStreamData stream) {
             }
 
             // Control motor
+            // else if (path == "/motor/fan") {
+            //     value == "start" ? startFan() : stopFan();
+            // }
+
             else if (path == "/motor/fan") {
-                value == "start" ? startFan() : stopFan();
+                fanCommand = value;
+                if (fanStatus == "manual") {
+                    fanCommand == "start" ? startFan() : stopFan();
+                }
+            } else if (path == "/motor/fanStatus") {
+                fanStatus = value;
+            } else if (path == "/motor/temperatureForStartingFan") {
+                temperatureThreshold = value.toInt();
             }
 
 

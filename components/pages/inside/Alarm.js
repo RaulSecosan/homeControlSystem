@@ -1,11 +1,12 @@
 import { StyleSheet, Text, View } from "react-native";
 
 import { TitleForStatusPage } from "../../Title";
-import { DirectionButtonStatus } from "../../DirectionButton";
+// import { DirectionButtonStatus } from "../../DirectionButton";
 import GroupButtons, { StatusPageButton } from "../../GroupButtons";
 import { useState, useEffect } from "react";
 import { ref, onValue } from "firebase/database";
 import { database } from "../../firebase";
+import { DirectionButtonStatus } from "../../GroupButtons";
 
 export default function Alarm({ navigation }) {
   const [sensorData, setSensorData] = useState("Loading..");

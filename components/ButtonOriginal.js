@@ -185,7 +185,6 @@ export default function ButtonOriginal({
       onPress={pressHandlerOutside}
       style={({ pressed }) => (pressed ? [styles.pressed] : "")}
     >
-      {/* <Text style={styles.button}>{name}</Text> */}
       {children ? children : <Text style={styles.button}>{name}</Text>}
 
     </Pressable>

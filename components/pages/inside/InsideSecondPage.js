@@ -2,9 +2,10 @@ import { StyleSheet, Text, View, Image, Pressable } from "react-native";
 
 import Title from "../../Title";
 import GroupButtons from "../../GroupButtons";
-import DirectionButton from "../../DirectionButton";
+// import DirectionButton from "../../DirectionButton";
 import { OneButton } from "../../GroupButtons";
 import { LinearGradient } from "expo-linear-gradient";
+import { DirectionButton } from "../../GroupButtons";
 
 export default function InsideSecondPage({ navigation }) {
   function pressHandlerDoors() {

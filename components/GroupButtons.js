@@ -1,8 +1,94 @@
-import { StyleSheet, Text, View, Image } from "react-native";
+import { StyleSheet, Text, View, Image, Pressable } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 
-import ButtonOriginal from "./ButtonOriginal";
 import { useState, useEffect } from "react";
+
+import {
+  turnOnDoorLed,
+  turnOffDoorLed,
+  openFrontDoor,
+  closeFrontDoor,
+  openGuestDoor,
+  closeGuestDoor,
+  openBedRoomDoor,
+  closeBedRoomDoor,
+  turnOnGarageLed,
+  turnOffGarageLed,
+  openGarageGate,
+  closeGarageGate,
+  turnOffHallLed,
+  turnOnHallLed,
+  turnOnAutoModeForHallLed,
+  turnOffAutoModeForHallLed,
+  turnOnAutoFanMode,
+  turnOffAutoFanMode,
+  turnOnLivingLed,
+  turnOffLivingLed,
+  bedRoomSlider,
+  guestSlider,
+  openGuestWindow,
+  closeGuestWindow,
+  openBedRoomtWindow,
+  closeBedRoomWindow,
+  openLivingWindow,
+  closeLivingWindow,
+  openLivingFan,
+  closeLivingFan,
+  resetESP,
+  armHouse,
+  disarmHouse,
+} from "./SensorsCommunication";
+
+function ButtonWithGradient({ name, action, link = "", navigation }) {
+  return (
+    <Pressable
+      onPress={() => executeAction(action)}
+      style={({ pressed }) => (pressed ? [styles.pressed] : "")}
+    >
+      <LinearGradient
+        colors={["#BB6666", "#552F2F"]}
+        start={{ x: 0.0, y: 0.0 }}
+        end={{ x: 1.0, y: 1.0 }}
+        locations={[0, 0.8]}
+        style={styles.buttonBoxGradient}
+      >
+        <Text style={styles.button}>{name}</Text>
+      </LinearGradient>
+    </Pressable>
+  );
+}
+
+function ButtonWithGradientAndLink({
+  name,
+  link = "",
+  navigation,
+  stil,
+  colors = ["#BB6666", "#552F2F"],
+}) {
+  function handlePress() {
+    if (link.length !== 0 && navigation) {
+      navigation.navigate(link);
+    } 
+  }
+
+  return (
+    <Pressable
+      onPress={handlePress}
+      style={({ pressed }) => (pressed ? [styles.pressed] : "")}
+    >
+      <LinearGradient
+        colors={colors}
+        start={{ x: 0.0, y: 0.0 }}
+        end={{ x: 1.0, y: 1.0 }}
+        locations={[0, 0.8]}
+        style={stil}
+      >
+        <Text style={styles.button}>{name}</Text>
+      </LinearGradient>
+    </Pressable>
+  );
+}
+
 export default function GroupButtons({
   paragraphName,
   buttonLeftName,
@@ -14,28 +100,8 @@ export default function GroupButtons({
     <View style={styles.alignContainer}>
       <Text style={styles.paragraph}>{paragraphName}</Text>
       <View style={styles.buttonRow}>
-        <View style={styles.buttonBox}>
-          <LinearGradient
-            colors={["#BB6666", "#552F2F"]}
-            start={{ x: 0.0, y: 0.0 }}
-            end={{ x: 1.0, y: 1.0 }}
-            locations={[0, 0.8]}
-            style={styles.buttonBoxGradient}
-          >
-            <ButtonOriginal name={buttonLeftName} action={buttonLeftAction} />
-          </LinearGradient>
-        </View>
-        <View style={styles.buttonBox}>
-          <LinearGradient
-            colors={["#BB6666", "#552F2F"]}
-            start={{ x: 0.0, y: 0.0 }}
-            end={{ x: 1.0, y: 1.0 }}
-            locations={[0, 0.8]}
-            style={styles.buttonBoxGradient}
-          >
-            <ButtonOriginal name={buttonRightName} action={buttonRightAction} />
-          </LinearGradient>
-        </View>
+        <ButtonWithGradient name={buttonLeftName} action={buttonLeftAction} />
+        <ButtonWithGradient name={buttonRightName} action={buttonRightAction} />
       </View>
     </View>
   );
@@ -53,7 +119,7 @@ export function GroupButtonsWithAutoFunction({
 }) {
   const [mode, setMode] = useState("turnOnAutoModeForHallLed");
 
-  const [autoHallLed, setAutoHallLed] = useState(null);
+  const [autoHallLed, setAutoHallLed] = useState("turnOnAutoModeForHallLed");
 
   useEffect(() => {
     const sensorDataRef = ref(database, "/led/hallLedStatus");
@@ -65,55 +131,32 @@ export function GroupButtonsWithAutoFunction({
     return () => unsubscribe();
   }, []);
 
-
   const handlePress = () => {
-    if (mode === "turnOnAutoModeForHallLed") {
-      setMode("turnOffAutoModeForHallLed");
-      return "turnOffAutoModeForHallLed";
-    } else  {
-      setMode("turnOnAutoModeForHallLed");
-      return "turnOnAutoModeForHallLed";
-    }
+    const newMode =
+      mode === "turnOnAutoModeForHallLed"
+        ? "turnOffAutoModeForHallLed"
+        : "turnOnAutoModeForHallLed";
+    setMode(newMode);
+    executeAction(newMode);
   };
-  // console.log(autoHallLed)
   return (
     <View style={styles.alignContainer}>
       <Text style={styles.paragraph}>{paragraphName}</Text>
       <View style={styles.buttonRow}>
-        <View style={styles.buttonBox}>
-          <LinearGradient
-            colors={["#BB6666", "#552F2F"]}
-            start={{ x: 0.0, y: 0.0 }}
-            end={{ x: 1.0, y: 1.0 }}
-            locations={[0, 0.8]}
-            style={styles.buttonBoxGradient}
-          >
-            <ButtonOriginal name={buttonLeftName} action={buttonLeftAction} />
-          </LinearGradient>
-        </View>
+        <ButtonWithGradient name={buttonLeftName} action={buttonLeftAction} />
 
-        <ButtonOriginal action={handlePress}>
+        <Pressable onPress={handlePress}>
           <Image
             source={
-                autoHallLed == 'auto'
+              autoHallLed === "auto"
                 ? require("../assets/images/inside/auto2.png")
                 : require("../assets/images/inside/noAuto.png")
             }
             style={styles.image}
           />
-        </ButtonOriginal>
+        </Pressable>
 
-        <View style={styles.buttonBox}>
-          <LinearGradient
-            colors={["#BB6666", "#552F2F"]}
-            start={{ x: 0.0, y: 0.0 }}
-            end={{ x: 1.0, y: 1.0 }}
-            locations={[0, 0.8]}
-            style={styles.buttonBoxGradient}
-          >
-            <ButtonOriginal name={buttonRightName} action={buttonRightAction} />
-          </LinearGradient>
-        </View>
+        <ButtonWithGradient name={buttonRightName} action={buttonRightAction} />
       </View>
     </View>
   );
@@ -127,63 +170,193 @@ export function OneButtonForStatusPage({
   return (
     <View style={styles.alignContainer}>
       <Text style={styles.paragraph}>{paragraphName}</Text>
-      <View style={styles.buttonRow}>
-        <View style={styles.buttonBox}>
-          <LinearGradient
-            colors={["#BB6666", "#552F2F"]}
-            start={{ x: 0.0, y: 0.0 }}
-            end={{ x: 1.0, y: 1.0 }}
-            locations={[0, 0.8]}
-            style={styles.buttonBoxGradient}
-          >
-            <ButtonOriginal name={buttonLeftName} action={buttonLeftAction} />
-          </LinearGradient>
-        </View>
-      </View>
+      <ButtonWithGradient name={buttonLeftName} action={buttonLeftAction} />
     </View>
   );
 }
 
 export function OneButton({ name, link, navigation }) {
   return (
-    <LinearGradient
-      colors={["#BB6666", "#552F2F"]}
-      start={{ x: 0.0, y: 0.0 }}
-      end={{ x: 1.0, y: 1.0 }}
-      locations={[0, 0.8]}
-      style={styles.buttonBoxGradientforOneButton}
-    >
-      <ButtonOriginal name={name} link={link} navigation={navigation} />
-    </LinearGradient>
+    <ButtonWithGradientAndLink
+      name={name}
+      link={link}
+      navigation={navigation}
+      stil={styles.buttonBoxGradientforOneButton}
+    />
   );
 }
 
 export function StatusButton({ name, link, navigation }) {
   return (
-    <LinearGradient
-      colors={["#BB6666", "#552F2F"]}
-      start={{ x: 0.0, y: 0.0 }}
-      end={{ x: 1.0, y: 1.0 }}
-      locations={[0, 0.8]}
-      style={styles.buttonBoxGradientforStatusButton}
-    >
-      <ButtonOriginal name={name} link={link} navigation={navigation} />
-    </LinearGradient>
+    <ButtonWithGradientAndLink
+      name={name}
+      link={link}
+      navigation={navigation}
+      stil={styles.buttonBoxGradientforStatusButton}
+    />
   );
 }
 
 export function StatusPageButton({ name, link, navigation }) {
   return (
-    <LinearGradient
-      colors={["#4a3333", "#552F2F"]}
-      // start={{ x: 0.0, y: 0.0 }}
-      // end={{ x: 1.0, y: 1.0 }}
-      // locations={[0, 0.8]}
-      style={styles.buttonBoxGradientforStatusPage}
-    >
-      <ButtonOriginal name={name} link={link} navigation={navigation} />
-    </LinearGradient>
+    <ButtonWithGradientAndLink
+      name={name}
+      link={link}
+      navigation={navigation}
+      colors={["#BB6666", "#552F2F"]}
+      stil={styles.buttonBoxGradientforStatusPage}
+    />
   );
+}
+
+
+export function DirectionButton({ name, link, navigation }) {
+  return (
+    <View style={styles.backButton}>
+      <ButtonWithGradientAndLink name={name} link={link} navigation={navigation} stil={styles.buttonBoxGradient} />
+    </View>
+  );
+}
+
+
+export  function DirectionButtonStatus({ name, link, navigation }) {
+  return (
+    <View style={styles.backButtonStatus}>
+      <ButtonWithGradientAndLink name={name} link={link} navigation={navigation} />
+    </View>
+  );
+}
+
+
+function executeAction(action) {
+  // console.log(action);
+
+  //pentru GroupButtonsWithAutoFunction
+  if (typeof action === "function") {
+    action = action();
+  }
+
+  switch (action) {
+    case "turnOnDoorLed":
+      turnOnDoorLed();
+      break;
+    case "turnOffDoorLed":
+      turnOffDoorLed();
+      break;
+    case "turnOnGarageLed":
+      turnOnGarageLed();
+      break;
+    case "turnOffGarageLed":
+      turnOffGarageLed();
+      break;
+    case "turnOnHallLed":
+      turnOnHallLed();
+      break;
+    case "turnOffHallLed":
+      turnOffHallLed();
+      break;
+    case "turnOnAutoModeForHallLed":
+      turnOnAutoModeForHallLed();
+      break;
+    case "turnOffAutoModeForHallLed":
+      turnOffAutoModeForHallLed();
+      break;
+    case "turnOnLivingLed":
+      turnOnLivingLed();
+      break;
+    case "turnOffLivingLed":
+      turnOffLivingLed();
+      break;
+    case "turnOnBedRoomLed":
+      // turnOnBedroomLed();
+      bedRoomSlider(100);
+      break;
+    case "turnOffBedRoomLed":
+      // turnOffBedroomLed();
+      bedRoomSlider(0);
+      break;
+
+    case "turnOnGuestLed":
+      // turnOnGuestLed();
+      guestSlider(100);
+      break;
+    case "turnOffGuestLed":
+      // turnOffGuestLed();
+      guestSlider(0);
+
+      break;
+
+    //Doors
+    case "openFrontDoor":
+      openFrontDoor();
+      break;
+    case "closeFrontDoor":
+      closeFrontDoor();
+      break;
+    case "openGarageGate":
+      openGarageGate();
+      break;
+    case "closeGarageGate":
+      closeGarageGate();
+      break;
+
+    case "openGuestDoor":
+      openGuestDoor();
+      break;
+    case "closeGuestDoor":
+      closeGuestDoor();
+      break;
+    case "openBedRoomDoor":
+      openBedRoomDoor();
+      break;
+    case "closeBedRoomDoor":
+      closeBedRoomDoor();
+      break;
+
+    //Windows
+    case "openGuestWindow":
+      openGuestWindow();
+      break;
+    case "closeGuestWindow":
+      closeGuestWindow();
+      break;
+    case "openBedRoomWindow":
+      openBedRoomtWindow();
+      break;
+    case "closeBedRoomWindow":
+      closeBedRoomWindow();
+      break;
+    case "openLivingWindow":
+      openLivingWindow();
+      break;
+    case "closeLivingWindow":
+      closeLivingWindow();
+      break;
+    case "openLivingFan":
+      openLivingFan();
+      break;
+
+    case "turnOnAutoFanMode":
+      turnOnAutoFanMode();
+      break;
+    case "turnOffAutoFanMode":
+      turnOffAutoFanMode();
+      break;
+    case "closeLivingFan":
+      closeLivingFan();
+      break;
+    case "resetESP":
+      resetESP();
+      break;
+
+    case "armHouse":
+      armHouse();
+      break;
+    case "disarmHouse":
+      disarmHouse();
+    default:
+      console.log("ai gresit comanda sau nu a fost inca initializata");
+  }
 }
 
 const styles = StyleSheet.create({
@@ -248,7 +421,14 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: "#BB6666",
   },
+  button: {
+    fontSize: 30,
+    color: "white",
+  },
 
+  pressed: {
+    opacity: 0.3,
+  },
   image: {
     width: 35,
     height: 35,
@@ -257,5 +437,24 @@ const styles = StyleSheet.create({
     borderColor: "red",
     borderWidth: 0.5,
     borderRadius: 20,
+  },
+  backButton: {
+    marginTop: 20,
+    width: 165,
+    height: 50,
+    backgroundColor: "#BB6666",
+    justifyContent: "center",
+    alignItems: "center",
+    borderRadius: 30,
+  },
+
+  backButtonStatus: {
+    marginTop: 20,
+    width: 165,
+    height: 50,
+    backgroundColor: "#4a3333",
+    justifyContent: "center",
+    alignItems: "center",
+    borderRadius: 30,
   },
 });

@@ -12,11 +12,13 @@ import { database } from "../../../components/firebase";
 
 import Title from "../../Title";
 import GroupButtons, { GroupButtonsWithAutoFunction } from "../../GroupButtons";
-import DirectionButton from "../../DirectionButton";
+// import DirectionButton from "../../DirectionButton";
 import { useEffect, useState } from "react";
 import Slider from "@react-native-community/slider";
 import ButtonOriginal from "../../ButtonOriginal";
 import { fanTemperatureSlider } from "../../SensorsCommunication";
+import { DirectionButton } from "../../GroupButtons";
+
 
 export default function InsideDoors({ navigation }) {
   const [sliderForStaringFanTemperature, setSliderForStaringFanTemperature] =

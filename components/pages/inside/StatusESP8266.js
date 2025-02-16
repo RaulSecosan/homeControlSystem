@@ -1,7 +1,8 @@
 import { StyleSheet, Text, View } from "react-native";
 
 import { TitleForStatusPage } from "../../Title";
-import { DirectionButtonStatus } from "../../DirectionButton";
+// import { DirectionButtonStatus } from "../../DirectionButton";
+import { DirectionButtonStatus } from "../../GroupButtons";
 import { OneButtonForStatusPage, StatusPageButton } from "../../GroupButtons";
 import { useState, useEffect } from "react";
 import { ref, onValue } from "firebase/database";

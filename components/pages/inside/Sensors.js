@@ -4,7 +4,8 @@ import { ref, onValue } from "firebase/database";
 import { database } from "../../firebase";
 
 import Title from "../../Title";
-import DirectionButton from "../../DirectionButton";
+// import DirectionButton from "../../DirectionButton";
+import { DirectionButton } from "../../GroupButtons";
 
 export default function Sensors({ navigation }) {
   const [sensorData, setSensorData] = useState(null);

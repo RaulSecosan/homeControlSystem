@@ -3,8 +3,9 @@ import { View, Text, StyleSheet, ImageBackground } from 'react-native';
 import Slider from '@react-native-community/slider';
 import Title from '../../Title';
 import GroupButtons, {GroupButtonsWithAutoFunction} from "../../GroupButtons";
-import DirectionButton from "../../DirectionButton";
+// import DirectionButton from "../../DirectionButton";
 import { bedRoomSlider, guestSlider } from '../../SensorsCommunication';
+import { DirectionButton } from "../../GroupButtons";
 
 const CustomSlider = ({navigation}) => {
   const [sliderValueLiving, setSliderValueLiving] = useState(0);

@@ -2,7 +2,8 @@ import { StyleSheet, Text, View, ImageBackground, Button } from "react-native";
 
 import Title from "../../Title";
 import GroupButtons from "../../GroupButtons";
-import DirectionButton from "../../DirectionButton";
+// import DirectionButton from "../../DirectionButton";
+import { DirectionButton } from "../../GroupButtons";
 
 export default function InsideWindows({ navigation }) {
   return (

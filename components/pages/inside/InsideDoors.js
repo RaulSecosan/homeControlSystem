@@ -69,9 +69,11 @@ export default function InsideDoors({ navigation }) {
             <GroupButtons
               paragraphName="Guest Door"
               buttonLeftName="Open"
-              buttonLeftAction="openGuestDoor"
+          
+
+              buttonLeftAction="openBedRoomDoor"
               buttonRightName="Close"
-              buttonRightAction="closeGuestDoor"
+              buttonRightAction="closeBedRoomDoor"
             />
           </View>
 
@@ -79,9 +81,9 @@ export default function InsideDoors({ navigation }) {
             <GroupButtons
               paragraphName="BedRoom Door"
               buttonLeftName="Open"
-              buttonLeftAction="openBedRoomDoor"
+              buttonLeftAction="openGuestDoor"
               buttonRightName="Close"
-              buttonRightAction="closeBedRoomDoor"
+              buttonRightAction="closeGuestDoor"
             />
           </View>
 

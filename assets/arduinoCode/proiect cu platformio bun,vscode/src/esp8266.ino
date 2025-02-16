@@ -14,8 +14,13 @@
 
 
 // WiFi credentials
-const char* ssid = "Seco";
-const char* password = "secosanpq1";
+// const char* ssid = "Seco";
+// const char* password = "secosanpq1";
+
+
+// WiFi credentials
+const char* ssid = "xSecoI";
+const char* password = "seco1212";
 
 // Firebase configuration
 #define FIREBASE_HOST "licentalivedb-default-rtdb.firebaseio.com"
@@ -812,11 +817,11 @@ void streamCallback(MultiPathStreamData stream) {
             // Convert the value from string to integer
             int brightnessPercentage = value.toInt();
 
-            // Validate brightness percentage (must be between 0 and 100)
-            if (brightnessPercentage < 0 || brightnessPercentage > 100) {
-                // Serial.printf("Invalid brightness value for %s: %d\n", path.c_str(), brightnessPercentage);
-                continue;
-            }
+            // // Validate brightness percentage (must be between 0 and 100)
+            // if (brightnessPercentage < 0 || brightnessPercentage > 100) {
+            //     // Serial.printf("Invalid brightness value for %s: %d\n", path.c_str(), brightnessPercentage);
+            //     continue;
+            // }
 
             // Handle each path
             if (path == "/led/guest/ledDim") {
@@ -1078,8 +1083,10 @@ void setup() {
   firebaseConfig.signer.tokens.legacy_token = FIREBASE_AUTH;
 
 
-  // stream.setBSSLBufferSize(512, 128);
+  // stream.setBSSLBufferSize(512, 128); nu 
   stream.setBSSLBufferSize(1024, 256); // Crește bufferul dacă datele sunt mari
+  // stream.setBSSLBufferSize(2048, 256);//e ok 
+// 4096 sau chiar 8192 dacă datele sunt semnificativ mai mari la prima valoare la citire
 
   Firebase.begin(&firebaseConfig, &firebaseAuth);
   Firebase.reconnectWiFi(true);

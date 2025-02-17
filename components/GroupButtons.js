@@ -68,7 +68,7 @@ function ButtonWithGradientAndLink({
   function handlePress() {
     if (link.length !== 0 && navigation) {
       navigation.navigate(link);
-    } 
+    }
   }
 
   return (
@@ -203,30 +203,47 @@ export function StatusPageButton({ name, link, navigation }) {
       name={name}
       link={link}
       navigation={navigation}
-      colors={["#BB6666", "#552F2F"]}
+      colors={["#4a3333", "#552F2F"]}
       stil={styles.buttonBoxGradientforStatusPage}
     />
   );
 }
 
-
 export function DirectionButton({ name, link, navigation }) {
+  function handlePress() {
+    if (link.length !== 0 && navigation) {
+      navigation.navigate(link);
+    }
+  }
   return (
-    <View style={styles.backButton}>
-      <ButtonWithGradientAndLink name={name} link={link} navigation={navigation} stil={styles.buttonBoxGradient} />
-    </View>
+    <Pressable
+      onPress={handlePress}
+      style={({ pressed }) => (pressed ? [styles.pressed] : "")}
+    >
+      <View style={styles.backButton}>
+        <Text style={styles.button}>{name}</Text>
+      </View>
+    </Pressable>
   );
 }
 
-
-export  function DirectionButtonStatus({ name, link, navigation }) {
+export function DirectionButtonStatus({ name, link, navigation }) {
+  function handlePress() {
+    if (link.length !== 0 && navigation) {
+      navigation.navigate(link);
+    }
+  }
   return (
-    <View style={styles.backButtonStatus}>
-      <ButtonWithGradientAndLink name={name} link={link} navigation={navigation} />
-    </View>
+    <Pressable
+      onPress={handlePress}
+      style={({ pressed }) => (pressed ? [styles.pressed] : "")}
+    >
+      <View style={styles.backButtonStatus}>
+        <Text style={styles.button}>{name}</Text>
+      </View>
+    </Pressable>
   );
 }
-
 
 function executeAction(action) {
   // console.log(action);

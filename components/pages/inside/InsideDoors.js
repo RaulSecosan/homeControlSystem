@@ -3,27 +3,21 @@ import {
   Text,
   View,
   ImageBackground,
-  Button,
-  Image,
 } from "react-native";
 
 import { ref, onValue } from "firebase/database";
 import { database } from "../../../components/firebase";
 
 import Title from "../../Title";
-import GroupButtons, { GroupButtonsWithAutoFunction } from "../../GroupButtons";
-// import DirectionButton from "../../DirectionButton";
+import GroupButtons, { GroupButtonsWithAutoFanFunction, GroupButtonsWithAutoFunction } from "../../GroupButtons";
 import { useEffect, useState } from "react";
 import Slider from "@react-native-community/slider";
-import ButtonOriginal from "../../ButtonOriginal";
 import { fanTemperatureSlider } from "../../SensorsCommunication";
 import { DirectionButton } from "../../GroupButtons";
-
 
 export default function InsideDoors({ navigation }) {
   const [sliderForStaringFanTemperature, setSliderForStaringFanTemperature] =
     useState(30);
-  const [mode, setMode] = useState("turnOnAutoFanMode");
   const [autoFanMode, setAutoFanMode] = useState(null);
 
   useEffect(() => {
@@ -36,15 +30,8 @@ export default function InsideDoors({ navigation }) {
     return () => unsubscribe();
   }, []);
 
-  const handlePress = () => {
-    if (mode === "turnOnAutoFanMode") {
-      setMode("turnOffAutoFanMode");
-      return "turnOffAutoFanMode";
-    } else {
-      setMode("turnOnAutoFanMode");
-      return "turnOnAutoFanMode";
-    }
-  };
+ 
+
   return (
     <View style={styles.container}>
       <ImageBackground
@@ -71,8 +58,6 @@ export default function InsideDoors({ navigation }) {
             <GroupButtons
               paragraphName="Guest Door"
               buttonLeftName="Open"
-          
-
               buttonLeftAction="openBedRoomDoor"
               buttonRightName="Close"
               buttonRightAction="closeBedRoomDoor"
@@ -99,16 +84,8 @@ export default function InsideDoors({ navigation }) {
             />
 
             <View style={styles.bottomButtonGroup}>
-              <ButtonOriginal action={handlePress}>
-                <Image
-                  source={
-                    autoFanMode == "auto"
-                      ? require("../../../assets/images/inside/auto2.png")
-                      : require("../../../assets/images/inside/noAuto.png")
-                  }
-                  style={styles.image}
-                />
-              </ButtonOriginal>
+         
+              <GroupButtonsWithAutoFanFunction        />
 
               <View
                 style={[
@@ -201,15 +178,7 @@ const styles = StyleSheet.create({
     top: 100,
   },
 
-  image: {
-    width: 55,
-    height: 55,
-    marginTop: 20,
-    borderColor: "red",
-    borderWidth: 0.3,
-    borderRadius: 130,
-    marginLeft: 20,
-  },
+
   bottomButtonGroup: {
     flexDirection: "row",
   },
@@ -217,7 +186,6 @@ const styles = StyleSheet.create({
     marginLeft: 20,
     marginVertical: 15,
     alignItems: "center",
-    // justifyContent: 'center',
     borderWidth: 1,
     borderRadius: 30,
     borderColor: "#C55656",
@@ -234,10 +202,7 @@ const styles = StyleSheet.create({
   },
   slider: {
     width: "80%",
-    // height: 40,
     top: -14,
-    // bottom: 2,
-    // position: 'absolute',
   },
 
   backButton: {

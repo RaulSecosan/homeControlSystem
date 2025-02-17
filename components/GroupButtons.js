@@ -1,6 +1,9 @@
 import { StyleSheet, Text, View, Image, Pressable } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 
+import Slider from "@react-native-community/slider";
+import { fanTemperatureSlider } from "./SensorsCommunication";
+
 import { useState, useEffect } from "react";
 
 import {
@@ -161,6 +164,49 @@ export function GroupButtonsWithAutoFunction({
     </View>
   );
 }
+
+
+
+export function GroupButtonsWithAutoFanFunction({
+ 
+}) {
+  const [mode, setMode] = useState("turnOnAutoFanMode");
+  const [autoFanMode, setAutoFanMode] = useState(null);
+
+  useEffect(() => {
+    const sensorDataRef = ref(database, "/motor/fanStatus");
+
+    const unsubscribe = onValue(sensorDataRef, (snapshot) => {
+      setAutoFanMode(snapshot.val());
+    });
+
+    return () => unsubscribe();
+  }, []);
+
+  const handlePress = () => {
+    const newMode =
+      mode === "turnOnAutoFanMode"
+        ? "turnOffAutoFanMode"
+        : "turnOnAutoFanMode";
+    setMode(newMode);
+    executeAction(newMode);
+  };
+
+  return (
+        <Pressable onPress={handlePress}>
+          <Image
+            source={
+              autoFanMode === "auto"
+                ? require("../assets/images/inside/auto2.png")
+                : require("../assets/images/inside/noAuto.png")
+            }
+            style={styles.image1}
+          />
+        </Pressable>
+  );
+}
+
+
 
 export function OneButtonForStatusPage({
   paragraphName,
@@ -473,5 +519,14 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
     borderRadius: 30,
+  },
+  image1: {
+    width: 55,
+    height: 55,
+    marginTop: 14,
+    borderColor: "red",
+    borderWidth: 0.3,
+    borderRadius: 130,
+    marginLeft: 20,
   },
 });

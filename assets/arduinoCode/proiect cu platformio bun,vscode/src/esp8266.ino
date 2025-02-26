@@ -9,8 +9,7 @@
 #include <DHT_U.h>
 #include "bipolarstepper.h"
 
-#include <ArduinoOTA.h>
-
+#include <ArduinoOTA.h> //pentru programare prin wifi
 
 
 // WiFi credentials
@@ -52,32 +51,25 @@ ShiftRegister74HC595<3> sr(dataPin, clockPin, latchPin);
 // PWM dimming on TX and RX
 #define TX_GUEST_LED 1  // GPIO1
 #define RX_BEDROOM_LED 3  // GPIO3
-
-// #define TX_GUEST_LED D1  // GPIO1
-// #define RX_BEDROOM_LED D2  // GPIO3
-
-// #define DHT_PIN 1
-// #define PIR_PIN 3  
-
 //Led
 #define GARAGE_LEFT_LED 10
 #define GARAGE_RIGHT_LED 11
-// #define GUEST_LED   12
 #define DOOR_LEFT_LED 13
-#define DOOR_RIGHT_LED 14
-// #define BEDROOM_LED 15
+#define DOOR_RIGHT_LED 12
 #define HALL_LED 16
 #define LIVING_LED1 17
 #define LIVING_LED2 18
+
 //Fan
 #define MOTOR_IN1 19  
 #define MOTOR_IN2 20  
 #define MOTOR_ENABLE 21 
 
-// Define channels for the servo motors on the first shift register
+// Define channels for the doors with servo motor on the first shift register
 #define FRONT_DOOR 0
 #define BED_ROOM_DOOR 1
 #define GUEST_DOOR 2
+
 //Windows
 #define GUEST_WINDOW 7
 #define BED_ROOM_WINDOW 8
@@ -92,45 +84,32 @@ ShiftRegister74HC595<3> sr(dataPin, clockPin, latchPin);
 // Buzzer
 #define BUZZER_PIN 22
 
+// Motor pas cu pas cu 2048 pași
+BiPolStepper stepper(2048); 
 
-BiPolStepper stepper(2048); // Motor pas cu pas cu 2048 pași
 
-
-
-//Temperatura
-#define DHTTYPE DHT11
+//Sensors
+#define DHTTYPE DHT11 //Temperatura si umiditate
 DHT dht(DHT_PIN, DHTTYPE);
-
-
 #define RAIN_SENSOR_PIN D3
 #define GAS_SENSOR_PIN A0
 #define FIRE_SENSOR_PIN D4
+#define MAGNETICREDSWITCH_PIN D7
 
-#define HALL_SENSOR_PIN D7
+// Variables for sensors
+int ldrValue = 0; //Senzor de lumina, light dependent resistor
+int pirValue = 0; //Senzor de miscare, passive infrared sensor
 
-int ldrValue = 0;
-int pirValue = 0;
+// Stepper motor variables
 volatile bool isStepperMotorRunning = false; 
-
-
-// Stepper motor 
 volatile bool isRunning = false;
 
-// Variables for servo control
-int guestDoorPosition; 
-int frontDoorPosition;
-int bedRoomDoorPosition; 
-int guestWindowPosition; 
-int bedRoomWindowPosition; 
-int livingWindowPosition; 
-
+//Variable for servo motor
 // const int pulseMin = 544; // Minimum pulse width in microseconds
 // const int pulseMax = 2400; // Maximum pulse width in microseconds
 
-
-
-bool windowsClosed = false; // Variabilă pentru starea geamurilor
-
+// Variabilă pentru starea geamurilor
+bool windowsClosed = false; 
 
 // Variabilă pentru controlul manual al LED-ului
 bool manualControlHallLed = false;
@@ -140,14 +119,10 @@ bool isHouseArmed = false;
 
 
 
-
-
 void handleRoot() {
   String html = MAIN_page;
   server.send(200, "text/html", html);
 }
-
-
 
 // Handle temperature and humidity request just for html
 void handleTemperatureHumidity() {
@@ -164,75 +139,6 @@ void handleTemperatureHumidity() {
   server.send(200, "application/json", jsonResponse);
 }
 
-
-
-void checkRain() {
-    static bool lastRainDetected = false;
-
-    bool currentRainDetected = (digitalRead(RAIN_SENSOR_PIN) == LOW); // LOW semnifică ploaie
-
-    if (currentRainDetected != lastRainDetected) {
-        String rainStatus = currentRainDetected ? "It's Raining!" : "No Rain";
-        Firebase.setString(firebaseData, "/sensorData/rain", rainStatus);
-
-        lastRainDetected = currentRainDetected;
-    }
-
-    if (currentRainDetected) {
-        closeWindows();
-    }
-}
-
-
-void checkFire() {
-    static bool lastFireDetected = false;
-    bool currentFireDetected = (digitalRead(FIRE_SENSOR_PIN) == LOW);
-
-    if (currentFireDetected != lastFireDetected) {
-        String fireStatus = currentFireDetected ? "Fire!" : "No Fire";
-        Firebase.setString(firebaseData, "/sensorData/fire", fireStatus);
-        lastFireDetected = currentFireDetected;
-
-        if (currentFireDetected) {
-            activateBuzzer();
-        } else {
-            deactivateBuzzer();
-        }
-    }     
-}
-
-
-
-void checkGas() {
-    static bool lastGasDetected = false;
-
-    int gasValue = analogRead(GAS_SENSOR_PIN); 
-    bool currentGasDetected = (gasValue > 1200); 
-
-    if (currentGasDetected != lastGasDetected) {
-        String gasStatus = currentGasDetected ? "Gas!" : "No Gas";
-        Firebase.setString(firebaseData, "/sensorData/gas", gasStatus);
-        Firebase.setString(firebaseData, "/sensorData/gasValue", gasValue);
-
-        lastGasDetected = currentGasDetected;
-
-        if (currentGasDetected) {
-            activateBuzzer();
-        } else {
-            deactivateBuzzer();
-        }
-    }
-      Firebase.setString(firebaseData, "/sensorData/gasValue", gasValue);
-}
-
-
-
-void closeWindows() {
-    // Serial.println("Closing windows...");
-    closeGuestWindow();
-    closeLivingWindow();
-    closeBedRoomWindow();
-}
 
 //Doar pentru HTML
 void handleSensorsStatus() {
@@ -259,18 +165,79 @@ void handleMotionStatus() {
   String message = "Status: ";
   
   int pirValue = digitalRead(PIR_PIN);
-  int hallState = digitalRead(HALL_SENSOR_PIN); 
+  int reedSwitchState = digitalRead(MAGNETICREDSWITCH_PIN); 
 
-  message += "Door Status: " + String(hallState) + "\n";
+  message += "Door Status: " + String(reedSwitchState) + "\n";
 
   if (pirValue == HIGH) {
     message += "Motion Detected!";
   } else {
     message += "No Motion. ";
   }
-
-
   server.send(200, "text/plain", message);
+}
+
+
+void checkRain() {
+    static bool lastRainDetected = false;
+
+    bool currentRainDetected = (digitalRead(RAIN_SENSOR_PIN) == LOW); // LOW semnifică ploaie
+
+    if (currentRainDetected != lastRainDetected) {
+        String rainStatus = currentRainDetected ? "It's Raining!" : "No Rain";
+        Firebase.setString(firebaseData, "/sensorData/rain", rainStatus);
+        lastRainDetected = currentRainDetected;
+    }
+
+    if (currentRainDetected) {
+        closeWindows();
+    }
+}
+
+
+void closeWindows() {
+    // Serial.println("Closing windows...");
+    closeGuestWindow();
+    closeLivingWindow();
+    closeBedRoomWindow();
+}
+
+void checkFire() {
+    static bool lastFireDetected = false;
+    bool currentFireDetected = (digitalRead(FIRE_SENSOR_PIN) == LOW);
+
+    if (currentFireDetected != lastFireDetected) {
+        String fireStatus = currentFireDetected ? "Fire!" : "No Fire";
+        Firebase.setString(firebaseData, "/sensorData/fire", fireStatus);
+        lastFireDetected = currentFireDetected;
+
+        if (currentFireDetected) {
+            activateBuzzer();
+        } else {
+            deactivateBuzzer();
+        }
+    }     
+}
+
+
+void checkGas() {
+    static bool lastGasDetected = false;
+    int gasValue = analogRead(GAS_SENSOR_PIN); 
+    bool currentGasDetected = (gasValue > 1200); 
+
+    if (currentGasDetected != lastGasDetected) {
+        String gasStatus = currentGasDetected ? "Gas!" : "No Gas";
+        Firebase.setString(firebaseData, "/sensorData/gas", gasStatus);
+        Firebase.setString(firebaseData, "/sensorData/gasValue", gasValue);
+        lastGasDetected = currentGasDetected;
+
+        if (currentGasDetected) {
+            activateBuzzer();
+        } else {
+            deactivateBuzzer();
+        }
+    }
+      Firebase.setString(firebaseData, "/sensorData/gasValue", gasValue);
 }
 
 // Functions to handle LED control
@@ -286,41 +253,29 @@ void turnOffGarageLed() {
 
 void turnOnGuestLed() {
   digitalWrite(TX_GUEST_LED, HIGH); 
-
-  // sr.set(GUEST_LED, true);
 }
 
 void turnOffGuestLed() {
-  digitalWrite(TX_GUEST_LED, LOW); // Pornește complet LED-ul
-
-  // sr.set(GUEST_LED, false);
+  digitalWrite(TX_GUEST_LED, LOW); 
 }
 
 void turnOnDoorLed() {
   sr.set(DOOR_LEFT_LED, true);
   sr.set(DOOR_RIGHT_LED, true);
-
 }
 
 void turnOffDoorLed() {
   sr.set(DOOR_LEFT_LED, false);
   sr.set(DOOR_RIGHT_LED, false);
-
 }
 
-
 void turnOnBedroomLed() {
-  // sr.set(BEDROOM_LED, true);
   digitalWrite(RX_BEDROOM_LED, HIGH); 
-
 }
 
 void turnOffBedroomLed() {
-  // sr.set(BEDROOM_LED, false);
   digitalWrite(RX_BEDROOM_LED, LOW); 
-
 }
-
 
 void turnOnHallLed() {
   sr.set(HALL_LED, true);
@@ -346,78 +301,49 @@ void turnOnLivingLed2() {
 
 void turnOffLivingLed2() {
   sr.set(LIVING_LED2, false); 
-
 }
 
 
     //Doors
 //GuestDoor
-void setGuestDoorPosition(int position) {
-  guestDoorPosition = position;
-
-}
 
 void openGuestDoor() {
     setServoPosition(GUEST_DOOR, 158);
-
 }
 
 void closeGuestDoor() {
     setServoPosition(GUEST_DOOR, 24);
-
 }
 
 
 //FrontDoor
-void setFrontDoorPosition(int position) {
-  frontDoorPosition = position;
-}
-
 void openFrontDoor() {
-    setServoPosition(FRONT_DOOR, 135); 
-        // setServoPosition(FRONT_DOOR, 170); 
-
+  setServoPosition(FRONT_DOOR, 135); 
 }
 
 void closeFrontDoor() {
-   setServoPosition(FRONT_DOOR, 31); 
-      // setServoPosition(FRONT_DOOR, 55); 
-
+  setServoPosition(FRONT_DOOR, 31); 
 }
 
 //BedRoomDoor
-void setBedRoomDoorPosition(int position) {
-  bedRoomDoorPosition = position;
-}
-
 void openBedRoomDoor() {
   setServoPosition(BED_ROOM_DOOR, 28);
-
 }
 
 void closeBedRoomDoor() {
-  // setBedRoomDoorPosition(145); 
-              setServoPosition(BED_ROOM_DOOR, 165);
-
+  setServoPosition(BED_ROOM_DOOR, 165);
 }
 
 
-//Windows
-void setGuestWindowPosition(int position) {
-  guestWindowPosition = position;
-}
-
+  //Windows
 void openGuestWindow() {
-   setServoPosition(GUEST_WINDOW, 5);
+  setServoPosition(GUEST_WINDOW, 0);
 }
 
 void closeGuestWindow() {
-    setServoPosition(GUEST_WINDOW, 89);
+    setServoPosition(GUEST_WINDOW, 80);
 }
 
-void setBedRoomWindowPosition(int position) {
-  bedRoomWindowPosition = position;
-}
 
 void openBedRoomWindow() {
     setServoPosition(BED_ROOM_WINDOW, 130);
@@ -427,10 +353,6 @@ void closeBedRoomWindow() {
     setServoPosition(BED_ROOM_WINDOW, 48);
 }
 
-
-void setLivingWindowPosition(int position) {
-  livingWindowPosition = position;
-}
 
 void openLivingWindow() {
     setServoPosition(LIVING_WINDOW, 120);
@@ -447,22 +369,33 @@ const int pulseMax = 2600;
 
 
 void setServoPosition(int pin, int position) {
-    int pulseWidth = map(position, 0, 180, pulseMin, pulseMax);
-    ///Daca decomentez cele 2 serial.print nu mai se reseteaza placuta (watchdog)
+    int pulseWidth = map(position, 0, 180, pulseMin, pulseMax); //transforma din pozitia pe care o primeste(0-180) in ce avem nevoie in functie de puls, ex pentru 90 de grade avem nevoie de 1500 de microsecunde
     // Serial.print("Setare servo poziție: ");
     // Serial.println(position);
 
-    // Generăm semnal PWM timp de 1 secundă (50 cicluri la 20 ms fiecare)
+    // Generăm semnal PWM timp de 1 secundă (50 cicluri la 20 ms fiecare pentru a fi sigur ca s-a trimis informatia, poate fi doar o data dar nu mereu ia din prima motorul)
     for (int i = 0; i < 50; i++) {
         sr.set(pin, HIGH);  // Pin HIGH pentru durata impulsului
-        delayMicroseconds(pulseWidth);
+        delayMicroseconds(pulseWidth); //menține pinul HIGH pentru durata impulsului PWM corespunzătoare poziției dorite a servo-ului. Dacă poziția este 90 de grade, pulseWidth va fi 1500 µs, deci pinul rămâne HIGH timp de 1500 µs.
         sr.set(pin, LOW);   // Pin LOW pentru restul perioadei
-        delayMicroseconds(pwmPeriod - pulseWidth);
+        delayMicroseconds(pwmPeriod - pulseWidth); //Aceasta linie menține pinul LOW pentru restul perioadei de 20 ms (20000 µs). Deoarece un ciclu PWM complet trebuie să fie de 20 ms, scădem durata impulsului (pulseWidth) pentru a menține frecvența corectă. De exemplu, pentru un pulseWidth de 1500 µs, pinul rămâne LOW pentru 20000 - 1500 = 18500 µs.
         yield(); // Previne resetarea watchdog-ului
-
     }
 }
 
+// Store brightness (0-100 range)
+int brightnessTX = 0;
+int brightnessRX = 0;
+
+void handleLedWithPWM(int pin, int brightnessPercentage) {
+    if (brightnessPercentage == 0) {
+        digitalWrite(pin, LOW); 
+    } else if (brightnessPercentage == 100) {
+        digitalWrite(pin, HIGH); 
+    } else {
+        analogWrite(pin, brightnessPercentage); 
+    }
+}
 
 
 //Stepper
@@ -476,32 +409,46 @@ void setNewStepperState() {
 
 
 void handleForward() {
-    if (isStepperMotorRunning) return; // Nu permite alte comenzi dacă motorul este activ
+  if (isStepperMotorRunning) {
+    server.send(200, "text/plain", "Motor is already running");
+    return; // Nu permite alte comenzi dacă motorul este activ
+}    
     isStepperMotorRunning = true;
 
-    long steps = (205L * 2048L) / 360L; // 200 de grade -> pași
-    stepper.setStepsToMake(steps, true);
+    // long steps = (205L * 2048L) / 360L; // 205 de grade -> pași; 2048L reprezintă numărul total de pași pentru o rotație completă (360 de grade) a motorului pas cu pas.
+    long steps = (177L * 2048L) / 360L; // 205 de grade -> pași; 2048L reprezintă numărul total de pași pentru o rotație completă (360 de grade) a motorului pas cu pas.
 
-    // Când motorul termină, setează isMotorRunning pe false
+    stepper.setStepsToMake(steps, true); //Se setează motorul să facă un anumit număr de pași. Parametrul 2 indică direcția (true pentru înainte, false pentru înapoi).
+
+    // Când motorul termină, setează isMotorRunning pe false, e nevoie de while pentru ca setStepsToMake setează numărul de pași și direcția, dar NU îi execută imediat, actualizarea motorului se face prin update() care trebuie apelata periodic pentru a continua miscarea. update() verifică dacă a trecut suficient timp (STEP_TIME) și apoi face următorul pas.
+    //Ține codul în buclă până când motorul termină toți pașii. Apelează stepper.update(); continuu, astfel încât motorul să continue să se rotească.
+
     while (stepper.isRunning()) {
         stepper.update();
         setNewStepperState();
         yield(); // Permite altor procese să ruleze
     }
     
-    // deactivateStepper();
     isStepperMotorRunning = false; // Motorul a terminat execuția
 
-     if (!stepper.isRunning()) {
-      deactivateStepper();
-    }
+    //  if (!stepper.isRunning()) {
+    //   deactivateStepper();
+    // }
+    deactivateStepper();
+
+    server.send(200, "text/plain", "Motor moved  190 degrees");
 }
 
 void handleBackward() {
-    if (isStepperMotorRunning) return; // Nu permite alte comenzi dacă motorul este activ
-    isStepperMotorRunning = true;
+  if (isStepperMotorRunning) {
+    server.send(200, "text/plain", "Motor is already running");
+    return; // Nu permite alte comenzi dacă motorul este activ
+} 
+   isStepperMotorRunning = true;
 
-    long steps = (190L * 2048L) / 360L; // 190 de grade -> pași
+    // long steps = (190L * 2048L) / 360L; // 190 de grade -> pași
+    long steps = (173L * 2048L) / 360L; // 190 de grade -> pași
+
     stepper.setStepsToMake(steps, false);
 
     // Când motorul termină, setează isMotorRunning pe false
@@ -513,11 +460,40 @@ void handleBackward() {
 
     // deactivateStepper();
     isStepperMotorRunning = false; // Motorul a terminat execuția
+    deactivateStepper();
 
-     if (!stepper.isRunning()) {
-      deactivateStepper();
-    }
+    //  if (!stepper.isRunning()) {
+    //   deactivateStepper();
+    // }
+    server.send(200, "text/plain", "Motor moved backward 190 degrees");
 }
+
+void handleCustomDegrees(int degrees) {
+  if (isStepperMotorRunning) return; // Nu permite alte comenzi dacă motorul este activ
+  isStepperMotorRunning = true;
+
+  // Determinăm direcția în funcție de semnul gradelor
+  bool direction = (degrees >= 0); // true pentru grade pozitive, false pentru grade negative
+
+  // Calculăm numărul de pași necesari pentru gradele introduse (folosim valoarea absolută)
+  long steps = (abs(degrees) * 2048L) / 360L; // 2048L reprezintă numărul total de pași pentru o rotație completă (360 de grade)
+
+  stepper.setStepsToMake(steps, direction); // Setăm motorul să facă numărul de pași calculat, cu direcția corespunzătoare
+
+  // Buclă pentru a executa pașii motorului
+  while (stepper.isRunning()) {
+      stepper.update();
+      setNewStepperState();
+      yield(); // Permite altor procese să ruleze
+  }
+
+  isStepperMotorRunning = false; // Motorul a terminat execuția
+
+  if (!stepper.isRunning()) {
+      deactivateStepper();
+  }
+}
+
 
 void deactivateStepper() {
   sr.set(IN1, LOW);
@@ -530,58 +506,9 @@ void deactivateStepper() {
 unsigned long lastMotionTime = 0;  // Variabilă pentru a stoca timpul ultimei mișcări detectate
 const unsigned long lightOnDuration = 5000;  // Durata în milisecunde (5 secunde)
 
-
-
-// void checkLightAndMotion() {
-//     static bool lastMotionDetected = false;
-//     static bool lastIsNight = false;
-//     static bool lastManualControlHallLed = false;
-
-//     bool currentMotionDetected = (digitalRead(PIR_PIN) == HIGH);
-//     bool currentIsNight = (digitalRead(LDR_PIN) == HIGH);
-
-//     if (currentMotionDetected != lastMotionDetected) {
-//         String motionStatus = currentMotionDetected ? "Motion Detected!" : "No Motion";
-//         Firebase.setString(firebaseData, "/sensorData/motion", motionStatus);
-//         lastMotionDetected = currentMotionDetected;
-//         // Serial.println("Actualizat starea senzorului de mișcare în Firebase.");
-//     }
-
-//     if (currentIsNight != lastIsNight) {
-
-//         String lightStatus = "";
-//       if (currentIsNight) {
-//             manualControlHallLed = false;
-//             Firebase.setString(firebaseData, "/led/hallLedStatus", "auto");
-//             lightStatus = "Night";
-//         } else {
-          
-//           Firebase.setString(firebaseData, "/led/hallLedStatus", "manual");
-//           lightStatus = "Day";
-//           manualControlHallLed = true;
-//         }
-
-//         Firebase.setString(firebaseData, "/sensorData/isDay", lightStatus);
-//         lastIsNight = currentIsNight;
-//         // Serial.println("Actualizat starea de lumină (zi/noapte) în Firebase.");
-//     }
-
-//     if (currentMotionDetected && currentIsNight && !manualControlHallLed) {
-//         turnOnHallLed();
-//         lastMotionTime = millis();  
-//     }
-
-//     // Dacă e noapte, nu e mișcare și nu e modul manual, stingem LED-ul după o perioadă
-//         if (!currentMotionDetected && currentIsNight && !manualControlHallLed && millis() - lastMotionTime > lightOnDuration) {
-//             turnOffHallLed();
-//         }
-// }
-
-
-
 void checkMotion(){
-    bool currentMotionDetected = (digitalRead(PIR_PIN) == HIGH);
-static bool lastMotionDetected = false;
+  bool currentMotionDetected = (digitalRead(PIR_PIN) == HIGH);
+  static bool lastMotionDetected = false;
 
    if (currentMotionDetected != lastMotionDetected) {
         String motionStatus = currentMotionDetected ? "Motion Detected!" : "No Motion";
@@ -590,30 +517,26 @@ static bool lastMotionDetected = false;
         // Serial.println("Actualizat starea senzorului de mișcare în Firebase.");
     }
 }
+
 void checkLightAndMotion() {
     static bool lastIsNight = false;
     static bool lastManualControlHallLed = false;
 
     bool currentIsNight = (digitalRead(LDR_PIN) == HIGH);
-bool currentMotionDetected = (digitalRead(PIR_PIN) == HIGH);
-
- 
+    bool currentMotionDetected = (digitalRead(PIR_PIN) == HIGH);
 
     if (currentIsNight != lastIsNight) {
-
-        String lightStatus = "";
+      String lightStatus = "";
       if (currentIsNight) {
             manualControlHallLed = false;
             Firebase.setString(firebaseData, "/led/hallLedStatus", "auto");
             lightStatus = "Night";
         } else {
-        
             // Dacă LED-ul era controlat automat și este încă aprins, îl stingem acum
-            turnOffHallLed();
-        
-          Firebase.setString(firebaseData, "/led/hallLedStatus", "manual");
-          lightStatus = "Day";
-          manualControlHallLed = true;
+            turnOffHallLed(); 
+            Firebase.setString(firebaseData, "/led/hallLedStatus", "manual");
+            lightStatus = "Day";
+            manualControlHallLed = true;
         }
 
         Firebase.setString(firebaseData, "/sensorData/isDay", lightStatus);
@@ -627,12 +550,10 @@ bool currentMotionDetected = (digitalRead(PIR_PIN) == HIGH);
     }
 
     // Dacă e noapte, nu e mișcare și nu e modul manual, stingem LED-ul după o perioadă
-        if (!currentMotionDetected && currentIsNight && !manualControlHallLed && millis() - lastMotionTime > lightOnDuration) {
-            turnOffHallLed();
-        }
+    if (!currentMotionDetected && currentIsNight && !manualControlHallLed && millis() - lastMotionTime > lightOnDuration) {
+        turnOffHallLed();
+    }
 }
-
-
 
 
 // Funcție pentru a reveni la controlul automat după un anumit timp (opțional)
@@ -640,22 +561,18 @@ void resetManualControl() {
     manualControlHallLed = false;
 }
 
-
-
-
 void  displayTemperatureHumidity() {
     static float lastTemperature = -999; // Valoare imposibilă pentru inițializare
     static float lastHumidity = -999; // Valoare imposibilă pentru inițializare
 
     float currentTemperature = dht.readTemperature();
     float currentHumidity = dht.readHumidity();
-
-
     controlFanBasedOnTemperature(currentTemperature);
 
     // Verificăm dacă citirea senzorului este validă
     if (isnan(currentTemperature) || isnan(currentHumidity)) {
-        Serial.println("Eroare la citirea senzorului DHT!");
+        // Serial.println("Eroare la citirea senzorului DHT!");
+        Firebase.setString(firebaseData, "/sensorData/temperature", "Eroare la citirea senzorului DHT!");
         return;
     }
 
@@ -673,7 +590,7 @@ void  displayTemperatureHumidity() {
 
 //Fan
 void startFan() {
-  sr.set(MOTOR_ENABLE, HIGH); 
+  sr.set(MOTOR_ENABLE, HIGH); //Controleaza daca motorul primeste sau nu curent
   sr.set(MOTOR_IN1, HIGH);  // Setează IN1 la HIGH (direcția înainte)
   sr.set(MOTOR_IN2, LOW);   // Setează IN2 la LOW
 }
@@ -683,14 +600,15 @@ void stopFan() {
   // Setează pinii de direcție și pinul enable la LOW pentru a opri motorul
   sr.set(MOTOR_IN1, LOW);
   sr.set(MOTOR_IN2, LOW);
-  sr.set(MOTOR_ENABLE, LOW);  // Oprește complet motorul
+  sr.set(MOTOR_ENABLE, LOW);  //Nu mai primeste curent motorul
 }
 
 
 // Variabile globale
 String fanStatus = "manual"; 
 String fanCommand = "stop"; 
-int temperatureThreshold = 35; // Prag implicit pentru temperatura din Firebase
+int temperatureThreshold = 35; // Prag implicit pentru temperatura din Firebase 
+
 // Functia pentru controlul ventilatorului pe baza temperaturii
 void controlFanBasedOnTemperature(int currentTemperature) {
     if (fanStatus == "auto") {
@@ -713,24 +631,24 @@ bool isAlarmTriggered = false;
 
 // Funcție pentru a arma casa
 void armHouse() {
-    Firebase.setString(firebaseData, "/security/status", "armed");
+    Firebase.setString(firebaseData, "/security/status", "Armed");
 
     // Verificăm dacă există mișcare sau ușa este deschisă
     bool currentMotionDetected = (digitalRead(PIR_PIN) == HIGH);
-    bool isHallDoorOpen = (digitalRead(HALL_SENSOR_PIN) == HIGH); // Ușa este deschisă dacă starea este HIGH
+    bool isDoorOpen = (digitalRead(MAGNETICREDSWITCH_PIN) == HIGH); // Ușa este deschisă dacă starea este HIGH
 
-    if (currentMotionDetected || isHallDoorOpen) {
+    if (currentMotionDetected || isDoorOpen) {
         if (!isAlarmTriggered) {
-            activateBuzzer(); // Activăm alarma doar dacă nu a fost deja activată
+            activateBuzzer(); 
             String alertMessage = "Alarm!!";
             if (currentMotionDetected) {
                 alertMessage += " Mișcare detectată!";
             }
-            if (isHallDoorOpen) {
+            if (isDoorOpen) {
                 alertMessage += " Ușa este deschisă!";
             }
             Firebase.setString(firebaseData, "/security/alert", alertMessage);
-            isAlarmTriggered = true; // Setăm st area alarmei ca fiind declanșată
+            isAlarmTriggered = true; // Setăm starea alarmei ca fiind declanșată
         }
     }
 }
@@ -739,19 +657,101 @@ void armHouse() {
 void disarmHouse() {
     isHouseArmed = false; 
     isAlarmTriggered = false; 
-
     deactivateBuzzer(); 
     resetManualControl(); 
     Firebase.setString(firebaseData, "/security/status", "Disarmed");
     Firebase.setString(firebaseData, "/security/alert", "Disarmed");
-
 }
 
 
+void showWiFiSignalStrength() {
+  int rssi = WiFi.RSSI(); // valori intre -100 si 0 unde 0 este cel mai bun semnal
+  Firebase.setString(firebaseData, "/statusESP8266/wifiSignal", 
+      "RSSI: " + String(rssi) + " dBm");
+}
+
+void showFreeHeap() {
+  static String lastRamStatus = "";
+
+  // Obținem memoria liberă și totală direct în kilobytes
+  float freeRam = ESP.getFreeHeap() / 1024.0;  // Convertim bytes în kilobytes
+  float totalRam = 50000.0 / 1024.0;           // Total RAM în kilobytes
+
+  // Calculăm procentajul memoriei libere
+  float freePercentage = (freeRam / totalRam) * 100.0;
+  String currentRamStatus = String(freeRam, 2) + " kB (" + String(freePercentage, 2) + "%)";
+
+  if (currentRamStatus != lastRamStatus) {
+      // Trimitem totalul și memoria liberă în kilobytes
+      Firebase.setString(firebaseData, "/statusESP8266/ram/totalRAM", String(totalRam, 2) + " kB");
+      Firebase.setString(firebaseData, "/statusESP8266/ram/freeRAM", String(freeRam, 2) + " kB");
+      Firebase.setString(firebaseData, "/statusESP8266/ram/percentRAM",  String(freePercentage, 2) + " %");
+
+      // Salvăm starea pentru actualizări viitoare
+      lastRamStatus = currentRamStatus;
+      // Serial.println("Actualizat starea RAM-ului în Firebase.");
+  }
+}
 
 
-FirebaseData fbdo;
-FirebaseData stream;
+void reportStaticInfo() {
+  //Adresa IP
+  Firebase.setString(firebaseData, "/statusESP8266/IP", WiFi.localIP().toString());
+
+  // Adresa MAC
+  Firebase.setString(firebaseData, "/statusESP8266/macAddress", WiFi.macAddress());
+
+  // Frecvența CPU
+  Firebase.setString(firebaseData, "/statusESP8266/cpuFreq", String(ESP.getCpuFreqMHz()) + " MHz");
+
+  // // Dimensiunea totală Flash
+  // Firebase.setString(firebaseData, "/statusESP8266/flash/totalSize", String(ESP.getFlashChipSize()) + " bytes");
+
+  // // Dimensiunea libera Flash
+      // Firebase.setString(firebaseData, "/statusESP8266/flash/freeSize", String(ESP.getFreeSketchSpace()) + " bytes");
+  // Dimensiunea totală Flash în MB
+
+  Firebase.setString(firebaseData, "/statusESP8266/flash/totalSize", 
+  String(ESP.getFlashChipSize() / 1048576.0, 2) + " MB");
+
+  // Dimensiunea liberă Flash în MB
+  Firebase.setString(firebaseData, "/statusESP8266/flash/freeSize", 
+  String(ESP.getFreeSketchSpace() / 1048576.0, 2) + " MB");
+
+  // Versiunea SDK
+  Firebase.setString(firebaseData, "/statusESP8266/sdkVersion", ESP.getSdkVersion());
+
+}
+
+void handleReset() {
+  ESP.restart();
+}
+
+void magneticReedSwitch() { //Funcție pentru a verifica starea senzorului de ușă
+  static int lastReedSwitchState = -1; // Variabilă pentru stocarea stării anterioare
+
+  int ReedSwitchState = digitalRead(MAGNETICREDSWITCH_PIN); 
+  if (ReedSwitchState != lastReedSwitchState) { // Actualizăm Firebase doar dacă starea s-a schimbat
+    String doorStatus = (ReedSwitchState == LOW) ? "Closed" : "Opened";
+    Firebase.setString(firebaseData, "/sensorData/doorStatus", doorStatus);
+    lastReedSwitchState = ReedSwitchState; // Actualizăm starea anterioară
+  }
+}
+
+
+void activateBuzzer() {
+sr.set(BUZZER_PIN, HIGH); 
+}
+
+void deactivateBuzzer() {
+sr.set(BUZZER_PIN, LOW); 
+}
+
+
+String lastGarageDoorState = "open"; // Starea inițială presupusă
+
+FirebaseData fbdo;   // Obiect utilizat pentru operațiuni standard cu Firebase (scriere/citire de date)
+FirebaseData stream; // Obiect utilizat pentru a asculta în timp real modificările din Firebase (streaming de date)
 
 String parentPath = "/";  
 String childPath[21] = {
@@ -779,27 +779,6 @@ String childPath[21] = {
 };
 
 
-
-
-String lastGarageDoorState = "open"; // Starea inițială presupusă
-
-
-
-// Store brightness (0-100 range)
-int brightnessTX = 0;
-int brightnessRX = 0;
-
-void handleLedWithPWM(int pin, int brightnessPercentage) {
-    if (brightnessPercentage == 0) {
-        digitalWrite(pin, LOW); 
-    } else if (brightnessPercentage == 100) {
-        digitalWrite(pin, HIGH); 
-    } else {
-        analogWrite(pin, brightnessPercentage); 
-    }
-}
-
-
 void streamCallback(MultiPathStreamData stream) {
     // Dacă motorul este activ, ignorăm toate celelalte comenzi
     if (isStepperMotorRunning) {
@@ -808,62 +787,34 @@ void streamCallback(MultiPathStreamData stream) {
     }
 
     size_t numChild = sizeof(childPath) / sizeof(childPath[0]);
-
     for (size_t i = 0; i < numChild; i++) {
         if (stream.get(childPath[i])) {
             String path = stream.dataPath;
             String value = stream.value.c_str();
+            int brightnessPercentage = value.toInt(); // Convert the value from string to integer
 
-            // Convert the value from string to integer
-            int brightnessPercentage = value.toInt();
-
-            // // Validate brightness percentage (must be between 0 and 100)
-            // if (brightnessPercentage < 0 || brightnessPercentage > 100) {
-            //     // Serial.printf("Invalid brightness value for %s: %d\n", path.c_str(), brightnessPercentage);
-            //     continue;
-            // }
-
-            // Handle each path
+            // Handle led path
             if (path == "/led/guest/ledDim") {
-                // int pwmValue = map(brightnessPercentage, 0, 100, 0, 255); // Map to 0-255
-                // analogWrite(TX_GUEST_LED, pwmValue); // Set TX LED (garage)
-
                 handleLedWithPWM(TX_GUEST_LED, brightnessPercentage); 
                 brightnessTX = brightnessPercentage;
-                // Serial.printf("Garage LED brightness set to %d%% (PWM: %d)\n", brightnessPercentage, pwmValue);
-
             } else if (path == "/led/bedRoom/ledDim") {
-                // int pwmValue = map(brightnessPercentage, 0, 100, 0, 255); // Map to 0-255
-                // analogWrite(RX_BEDROOM_LED, pwmValue); // Set RX LED (guest)
-                
-                handleLedWithPWM(RX_BEDROOM_LED, brightnessPercentage); // Gestionare pentru LED-ul de la bedroom
+                handleLedWithPWM(RX_BEDROOM_LED, brightnessPercentage); 
                 brightnessRX = brightnessPercentage;
-                // Serial.printf("Guest LED brightness set to %d%% (PWM: %d)\n", brightnessPercentage, pwmValue);
-       
-            } else
-            if (path == "/led/garageLed") {
+            } else if (path == "/led/garageLed") {
                 value == "on" ? turnOnGarageLed() : turnOffGarageLed();
-            } 
-            else if (path == "/led/doorLed") {
+            } else if (path == "/led/doorLed") {
                 value == "on" ? turnOnDoorLed() : turnOffDoorLed();
-            } 
-          
-            else if (path == "/led/hallLed") {
+            } else if (path == "/led/hallLed") {
                 if (value == "on") {
                     turnOnHallLed();
                     manualControlHallLed = true; 
                     Firebase.setString(firebaseData, "/led/hallLedStatus", "manual");
-
                 } else if (value == "off") {
                     turnOffHallLed();
                     manualControlHallLed = true; 
                     Firebase.setString(firebaseData, "/led/hallLedStatus", "manual");
-
                  } 
-               
-                }
-            
-               else if (path == "/led/hallLedStatus") {
+              }else if (path == "/led/hallLedStatus") {
                 if (value == "auto") {
                     manualControlHallLed = false; // Permitem controlul automat
                    }
@@ -871,270 +822,198 @@ void streamCallback(MultiPathStreamData stream) {
                       manualControlHallLed = true; 
 
                 }
-               }
-
-            
-            else if (path == "/led/livingLed") {
-                if (value == "on") {
-                    turnOnLivingLed1();
-                } else {
-                    turnOffLivingLed1();
-                }
+          } else if (path == "/led/livingLed") {
+            if (value == "on") {
+              turnOnLivingLed1();
+            } else {
+              turnOffLivingLed1();
             }
+          }
 
-            // Control uși
-            else if (path == "/door/guestDoor") {
-                value == "open" ? openGuestDoor() : closeGuestDoor();
-            } else if (path == "/door/frontDoor") {
-                value == "open" ? openFrontDoor() : closeFrontDoor();
-
-            } else if (path == "/door/bedRoomDoor") {
-                value == "open" ? openBedRoomDoor() : closeBedRoomDoor();
-            } else if (path == "/door/garage") {
-                // Gestionăm comanda doar dacă valoarea s-a schimbat
-                if (value != lastGarageDoorState) {
-                    lastGarageDoorState = value;
-
-                    if (value == "open") {
-                        // Serial.println("Comanda primită: open - motorul va merge backward.");
-                        handleBackward();
-                        
-                    } else if (value == "close") {
-                        // Serial.println("Comanda primită: close - motorul va merge forward.");
-                        handleForward();
-                    } 
+          // Control uși
+          else if (path == "/door/guestDoor") {
+              value == "open" ? openGuestDoor() : closeGuestDoor();
+          } else if (path == "/door/frontDoor") {
+              value == "open" ? openFrontDoor() : closeFrontDoor();
+          } else if (path == "/door/bedRoomDoor") {
+              value == "open" ? openBedRoomDoor() : closeBedRoomDoor();
+          } else if (path == "/door/garage") {
+              // Gestionăm comanda doar dacă valoarea s-a schimbat
+              if (value != lastGarageDoorState) {
+                lastGarageDoorState = value;
+                if (value == "open") {
+                  handleBackward();  
+                } else if (value == "close") {
+                  handleForward();
                 } 
-                // Odată ce comanda pentru stepper este procesată, ieșim din callback
-                return;
+              } 
+              // Odată ce comanda pentru stepper este procesată, ieșim din callback
+              return;
+          }
+
+          // Control ferestre
+          else if (path == "/window/guestWindow") {
+              value == "open" ? openGuestWindow() : closeGuestWindow();
+          } else if (path == "/window/livingWindow") {
+              value == "open" ? openLivingWindow() : closeLivingWindow();
+          } else if (path == "/window/bedRoomWindow") {
+              value == "open" ? openBedRoomWindow() : closeBedRoomWindow();
+          }
+
+          // Control ventilator
+          else if (path == "/motor/fan") {
+            fanCommand = value;
+            if (fanStatus == "manual") {
+              fanCommand == "start" ? startFan() : stopFan();
             }
+          } else if (path == "/motor/fanStatus") {
+              fanStatus = value;
+          } else if (path == "/motor/temperatureForStartingFan") {
+              temperatureThreshold = value.toInt();
+          }
 
-            // Control ferestre
-            else if (path == "/window/guestWindow") {
-                value == "open" ? openGuestWindow() : closeGuestWindow();
-            } else if (path == "/window/livingWindow") {
-                value == "open" ? openLivingWindow() : closeLivingWindow();
-            } else if (path == "/window/bedRoomWindow") {
-                value == "open" ? openBedRoomWindow() : closeBedRoomWindow();
+            // Comenzi pentru armarea sau dezarmarea casei
+          else if (path == "/security/arm") {
+              if (value == "arm") {
+                isHouseArmed = true; 
+                Firebase.setString(firebaseData, "/security/alert", "Clear");
+              } else if (value == "disarm") {
+                disarmHouse(); 
             }
-
-            // Control motor
-            // else if (path == "/motor/fan") {
-            //     value == "start" ? startFan() : stopFan();
-            // }
-
-            else if (path == "/motor/fan") {
-                fanCommand = value;
-                if (fanStatus == "manual") {
-                    fanCommand == "start" ? startFan() : stopFan();
-                }
-            } else if (path == "/motor/fanStatus") {
-                fanStatus = value;
-            } else if (path == "/motor/temperatureForStartingFan") {
-                temperatureThreshold = value.toInt();
-            }
-
-
-             // Comenzi pentru armarea sau dezarmarea casei
-            else if (path == "/security/arm") {
-                if (value == "arm") {
-                      // armHouse();
-                          isHouseArmed = true; 
-                              Firebase.setString(firebaseData, "/security/alert", "Clear");
-
-
-
-                } else if (value == "disarm") {
-                    disarmHouse(); 
-                }
-            }
-
-              else if (path == "/statusESP8266/reset") {
-                      if (value == "reset") {
-                           handleReset();
-                       }    
-                    }        
+          }
+          
+          //Resetare microcontroller
+          else if (path == "/statusESP8266/reset") {
+            if (value == "reset") {
+              handleReset();
+            }    
+          }        
         }
     }
 }
-
 
 void streamTimeoutCallback(bool timeout) {
   if (timeout) {
     Serial.println("Stream timed out, resuming...");
   }
-
+  
   if (!stream.httpConnected()) {
     Serial.printf("Error code: %d, reason: %s\n\n", stream.httpCode(), stream.errorReason().c_str());
   }
 }
 
 
-void showWiFiSignalStrength() {
-    int rssi = WiFi.RSSI(); 
-    Firebase.setString(firebaseData, "/statusESP8266/wifiSignal", 
-        "RSSI: " + String(rssi) + " dBm");
-}
-
-void showFreeHeap() {
-    static String lastRamStatus = "";
-
-    // Obținem memoria liberă și totală direct în kilobytes
-    float freeRam = ESP.getFreeHeap() / 1024.0;  // Convertim bytes în kilobytes
-    float totalRam = 50000.0 / 1024.0;           // Total RAM în kilobytes
-
-    // Calculăm procentajul memoriei libere
-    float freePercentage = (freeRam / totalRam) * 100.0;
-    String currentRamStatus = String(freeRam, 2) + " kB (" + String(freePercentage, 2) + "%)";
-
-    if (currentRamStatus != lastRamStatus) {
-        // Trimitem totalul și memoria liberă în kilobytes
-        Firebase.setString(firebaseData, "/statusESP8266/ram/totalRAM", String(totalRam, 2) + " kB");
-        Firebase.setString(firebaseData, "/statusESP8266/ram/freeRAM", String(freeRam, 2) + " kB");
-        Firebase.setString(firebaseData, "/statusESP8266/ram/percentRAM",  String(freePercentage, 2) + " %");
-
-        // Salvăm starea pentru actualizări viitoare
-        lastRamStatus = currentRamStatus;
-        // Serial.println("Actualizat starea RAM-ului în Firebase.");
-    }
-}
-
-
-void reportStaticInfo() {
-    //Adresa IP
-    Firebase.setString(firebaseData, "/statusESP8266/IP", WiFi.localIP().toString());
-
-    // Adresa MAC
-    Firebase.setString(firebaseData, "/statusESP8266/macAddress", WiFi.macAddress());
-
-    // Frecvența CPU
-    Firebase.setString(firebaseData, "/statusESP8266/cpuFreq", String(ESP.getCpuFreqMHz()) + " MHz");
-
-
-    // // Dimensiunea totală Flash
-    // Firebase.setString(firebaseData, "/statusESP8266/flash/totalSize", String(ESP.getFlashChipSize()) + " bytes");
-
-    // // Dimensiunea libera Flash
-        // Firebase.setString(firebaseData, "/statusESP8266/flash/freeSize", String(ESP.getFreeSketchSpace()) + " bytes");
-    // Dimensiunea totală Flash în MB
-    Firebase.setString(firebaseData, "/statusESP8266/flash/totalSize", 
-                      String(ESP.getFlashChipSize() / 1048576.0, 2) + " MB");
-
-    // Dimensiunea liberă Flash în MB
-    Firebase.setString(firebaseData, "/statusESP8266/flash/freeSize", 
-                      String(ESP.getFreeSketchSpace() / 1048576.0, 2) + " MB");
-
-    // Versiunea SDK
-    Firebase.setString(firebaseData, "/statusESP8266/sdkVersion", ESP.getSdkVersion());
-
-}
-
-void handleReset() {
-    ESP.restart();
-}
-
-void displayHallSensorState() {
-  static int lastHallState = -1; // Variabilă pentru stocarea stării anterioare
-
-  int hallState = digitalRead(HALL_SENSOR_PIN); 
-  if (hallState != lastHallState) { // Actualizăm Firebase doar dacă starea s-a schimbat
-    String doorStatus = (hallState == LOW) ? "Closed" : "Opened";
-    Firebase.setString(firebaseData, "/sensorData/doorStatus", doorStatus);
-    lastHallState = hallState; // Actualizăm starea anterioară
-  }
-}
-
-
-void activateBuzzer() {
-  sr.set(BUZZER_PIN, HIGH); 
-}
-
-void deactivateBuzzer() {
-  sr.set(BUZZER_PIN, LOW); 
-}
-
-
-
-// Setup function
-void setup() {
+  // Setup function
+//Initializare senzori si componente
+  void setup() {
   Serial.begin(115200);
   Serial.println("Motivul resetării: " + ESP.getResetReason());
 
   dht.begin();
-
   delay(500);
-
   sr.setAllLow();
 
+  //Configurare WiFi
   WiFi.mode(WIFI_STA);
-
   WiFi.begin(ssid, password);
 
   while (WiFi.status() != WL_CONNECTED) {
     delay(500);
     Serial.print(".");
   }
-  Serial.println("");
-  Serial.print("Connected to ");
-  Serial.println(ssid);
-  Serial.print("IP address: ");
-  Serial.println(WiFi.localIP());
 
+  if (WiFi.status() == WL_CONNECTED) {
+    Serial.println("\nConnected to " + String(ssid));
+    Serial.print("IP address: ");
+    Serial.println(WiFi.localIP());
+  } else {
+    Serial.println("\nWiFi connection failed!");
+  }
+
+   // Configurare Firebase
   firebaseConfig.host = FIREBASE_HOST;
   firebaseConfig.signer.tokens.legacy_token = FIREBASE_AUTH;
-
+  Firebase.begin(&firebaseConfig, &firebaseAuth);
+  Firebase.reconnectWiFi(true);
 
   // stream.setBSSLBufferSize(512, 128); nu 
   stream.setBSSLBufferSize(1024, 256); // Crește bufferul dacă datele sunt mari
   // stream.setBSSLBufferSize(2048, 256);//e ok 
 // 4096 sau chiar 8192 dacă datele sunt semnificativ mai mari la prima valoare la citire
 
-  Firebase.begin(&firebaseConfig, &firebaseAuth);
-  Firebase.reconnectWiFi(true);
-  reportResetReason();
-
   // Setarea MultiPath Stream
-if (!Firebase.beginMultiPathStream(stream, parentPath)) {
+  if (!Firebase.beginMultiPathStream(stream, parentPath)) {
     Serial.printf("Stream begin error, %s\n\n", stream.errorReason().c_str());
   }
 
   Firebase.setMultiPathStreamCallback(stream, streamCallback, streamTimeoutCallback);
-
+  Firebase.setString(firebaseData, "/statusESP8266/reset", "no reset");
   Serial.println("Connected to Firebase");
 
-  Firebase.setString(firebaseData, "/statusESP8266/reset", "no reset");
-
+  reportResetReason();
   reportStaticInfo();
 
+  // Configurare pini
+  configurePins();
 
-    // Configure pins for DIM led
-  pinMode(TX_GUEST_LED, OUTPUT);
-  pinMode(RX_BEDROOM_LED, OUTPUT);
+  // Configurare server web
+  setupWebRoutes();
+  server.begin();
+  Serial.println("HTTP server started");
 
-  pinMode(LDR_PIN, INPUT);
-  pinMode(PIR_PIN, INPUT);
+  // Configurare OTA, programare prin wi-fi
+  setupOTA();
+}
 
+void configurePins(){
+   pinMode(TX_GUEST_LED, OUTPUT);
+   pinMode(RX_BEDROOM_LED, OUTPUT);
+   pinMode(LDR_PIN, INPUT);
+   pinMode(PIR_PIN, INPUT);
+   pinMode(RAIN_SENSOR_PIN, INPUT);
+   pinMode(MAGNETICREDSWITCH_PIN,INPUT_PULLUP); 
+   pinMode(FIRE_SENSOR_PIN, INPUT);
+   pinMode(GAS_SENSOR_PIN, INPUT);
+}
 
-  pinMode(HALL_SENSOR_PIN,INPUT_PULLUP); 
-   
-  pinMode(RAIN_SENSOR_PIN, INPUT);
-  pinMode(FIRE_SENSOR_PIN, INPUT);
-  pinMode(GAS_SENSOR_PIN, INPUT);
+void setupOTA() {
+   // Nume device (opțional)
+   ArduinoOTA.setHostname("esp8266_Raul");
+   // Parolă OTA (opțional):
+  //  ArduinoOTA.setPassword("raul");
+   ArduinoOTA.begin();
+}
 
-  // Define routes for the web server
+void setupWebRoutes() {
   server.on("/", handleRoot);
   server.on("/temperature_humidity", handleTemperatureHumidity);
   server.on("/sensors_status", handleSensorsStatus);
   server.on("/motion_status", handleMotionStatus);
+  server.on("/moveCustomDegrees", handleMoveCustomDegrees); 
 
-  
+  setupBuzzerRoutes();
+  setupLedRoutes();
+  setupDoorRoutes();
+  setupWindowRoutes();
+  setupMotorRoutes();
+}
 
-  //Buzzer
+void setupBuzzerRoutes() {
   server.on("/onBuzzer", activateBuzzer);
   server.on("/OffBuzzer", deactivateBuzzer);
-  // server.on("/onBuzzer1", activateBuzzer1);
-  // server.on("/OffBuzzer1", deactivateBuzzer1);
+}
 
-  // LED control routes
+void handleMoveCustomDegrees() {
+  if (server.hasArg("degrees")) {
+      int degrees = server.arg("degrees").toInt();
+      handleCustomDegrees(degrees);
+      server.send(200, "text/plain", "Moving " + String(degrees) + " degrees");
+  } else {
+      server.send(400, "text/plain", "Degrees parameter missing");
+  }
+}
+
+void setupLedRoutes() {
   server.on("/garageLedOn", turnOnGarageLed);
   server.on("/garageLedOff", turnOffGarageLed);
   server.on("/guestLedOn", turnOnGuestLed);
@@ -1145,68 +1024,52 @@ if (!Firebase.beginMultiPathStream(stream, parentPath)) {
   server.on("/bedRoomLedOff", turnOffBedroomLed);
   server.on("/hallLedOn", turnOnHallLed);
   server.on("/hallLedOff", turnOffHallLed);
-  server.on("/livingLedOn", []() {turnOnLivingLed1(); turnOnLivingLed2();});
-  server.on("/livingLedOff", []() {turnOffLivingLed1(); turnOffLivingLed2();});
+  server.on("/livingLedOn", []() { turnOnLivingLed1(); turnOnLivingLed2(); });
+  server.on("/livingLedOff", []() { turnOffLivingLed1(); turnOffLivingLed2(); });
+}
 
-
-  // Door control routes
+void setupDoorRoutes() {
   server.on("/openGuestDoor", openGuestDoor);
   server.on("/closeGuestDoor", closeGuestDoor);
   server.on("/openFrontDoor", openFrontDoor);
   server.on("/closeFrontDoor", closeFrontDoor);
   server.on("/openBedRoomDoor", openBedRoomDoor);
   server.on("/closeBedRoomDoor", closeBedRoomDoor);
+}
 
-  // Window control routes
+void setupWindowRoutes() {
   server.on("/openGuestWindow", openGuestWindow);
   server.on("/closeGuestWindow", closeGuestWindow);
   server.on("/openLivingWindow", openLivingWindow);
   server.on("/closeLivingWindow", closeLivingWindow);
   server.on("/openBedRoomWindow", openBedRoomWindow);
   server.on("/closeBedRoomWindow", closeBedRoomWindow);
+}
 
-  // Stepper motor routes
+void setupMotorRoutes() {
   server.on("/moveForward", handleForward);
   server.on("/moveBackward", handleBackward);
-  
-  // Motor control routes (for L293D motor)
   server.on("/startFan", startFan);
   server.on("/stopFan", stopFan);
-
-
-
-  server.begin();
-
-  Serial.println("HTTP server started");
-
-  // Configurare OTA
-  // Nume device (opțional)
-    ArduinoOTA.setHostname("esp8266_Raul");
-  // Parolă OTA (opțional):
-    ArduinoOTA.setPassword("xseco");
-    ArduinoOTA.begin();
-
 }
 
 
 // Main loop
 // Timere pentru senzori 
-unsigned long lastHallSensorReadTime = 0;
-const unsigned long hallSensorInterval = 2000; // 2 secunde
+unsigned long lastMagneticReedSwitchReadTime = 0;
+const unsigned long magneticReedSwitchSensorInterval = 2000; // 2 secunde
 
 unsigned long lastSensorReadTime = 0;
 const unsigned long sensorReadInterval = 5000; // 5 secunde
-
-
 
 void loop() {
   server.handleClient();
 
   unsigned long currentTime = millis();
   // Citirea senzorilor la intervalul definit
-   if (currentTime - lastHallSensorReadTime >= hallSensorInterval) {
-    lastHallSensorReadTime = currentTime;
-    displayHallSensorState();
+   if (currentTime - lastMagneticReedSwitchReadTime >= magneticReedSwitchSensorInterval) {
+    lastMagneticReedSwitchReadTime = currentTime;
+    magneticReedSwitch();
     checkMotion();
   }
 
@@ -1219,8 +1082,6 @@ void loop() {
   ArduinoOTA.handle();
 }
 
-
-
 void readAllSensors() {
     checkLightAndMotion();
     displayTemperatureHumidity();
@@ -1229,9 +1090,9 @@ void readAllSensors() {
     checkRain();
     showFreeHeap();  
     showWiFiSignalStrength();
-     if (isHouseArmed) {
-            armHouse();
-        }
+    if (isHouseArmed) {
+      armHouse();
+    }
 }
 
 void reportResetReason() {
@@ -1240,6 +1101,5 @@ void reportResetReason() {
     // // Afișăm motivul resetării în Serial Monitor
     // Serial.print("Motivul resetării: ");
     // Serial.println(resetReason);
-
      Firebase.setString(firebaseData, "/statusESP8266/resetReason", resetReason);
 }

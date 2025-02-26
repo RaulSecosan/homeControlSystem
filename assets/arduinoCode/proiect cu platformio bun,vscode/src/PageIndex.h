@@ -17,7 +17,7 @@ const char MAIN_page[] PROGMEM = R"=====(
       cursor: pointer;
     }
   </style>
-  <script>
+   <script>
     function sendRequest(url) {
       var xhttp = new XMLHttpRequest();
       xhttp.onreadystatechange = function() {
@@ -76,7 +76,14 @@ const char MAIN_page[] PROGMEM = R"=====(
       motionStatus();
     }, 2000);
 
-
+function sendCustomDegrees() {
+    const degrees = document.getElementById("degreesInput").value;
+    if (degrees) {
+        sendRequest("/moveCustomDegrees?degrees=" + degrees);
+    } else {
+        alert("Please enter a valid number of degrees.");
+    }
+}
 
   </script>
 
@@ -131,23 +138,16 @@ const char MAIN_page[] PROGMEM = R"=====(
   <button onclick="sendRequest('/onBuzzer')">On Buzzer</button>
   <button onclick="sendRequest('/OffBuzzer')">Off Buzzer</button>
 
-    <h2>Buzzer mai incet</h2>
-  <button onclick="sendRequest('/onBuzzer1')">On Buzzer</button>
-  <button onclick="sendRequest('/OffBuzzer1')">Off Buzzer</button>
-
   <h2>Stepper Motor</h2>
   <button onclick="sendRequest('/moveForward')">Move Forward 190 Degrees</button>
   <button onclick="sendRequest('/moveBackward')">Move Backward 190 Degrees</button>
+<h2>Stepper Motor grade</h2>
+<input type="number" id="degreesInput" placeholder="Enter degrees (positive or negative)">
+<button onclick="sendCustomDegrees()">Move Custom Degrees</button>
 
   <h2>Control Ventilator</h2>
   <button onclick="sendRequest('/startFan')">Start Ventilator</button>
   <button onclick="sendRequest('/stopFan')">Stop ventilator</button>
-
-
- <button onclick="sendRequest('/garageLedDim20')">Start Ventilator20</button>
-  <button onclick="sendRequest('/garageLedDim60')">Stop ventilator60</button>
-  <button onclick="sendRequest('/garageLedDim100')">Stop ventilator100</button>
-
 
 </body>
 </html>

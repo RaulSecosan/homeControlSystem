@@ -165,11 +165,7 @@ export function GroupButtonsWithAutoFunction({
   );
 }
 
-
-
-export function GroupButtonsWithAutoFanFunction({
- 
-}) {
+export function GroupButtonsWithAutoFanFunction({}) {
   const [mode, setMode] = useState("turnOnAutoFanMode");
   const [autoFanMode, setAutoFanMode] = useState(null);
 
@@ -185,28 +181,24 @@ export function GroupButtonsWithAutoFanFunction({
 
   const handlePress = () => {
     const newMode =
-      mode === "turnOnAutoFanMode"
-        ? "turnOffAutoFanMode"
-        : "turnOnAutoFanMode";
+      mode === "turnOnAutoFanMode" ? "turnOffAutoFanMode" : "turnOnAutoFanMode";
     setMode(newMode);
     executeAction(newMode);
   };
 
   return (
-        <Pressable onPress={handlePress}>
-          <Image
-            source={
-              autoFanMode === "auto"
-                ? require("../assets/images/inside/auto2.png")
-                : require("../assets/images/inside/noAuto.png")
-            }
-            style={styles.image1}
-          />
-        </Pressable>
+    <Pressable onPress={handlePress}>
+      <Image
+        source={
+          autoFanMode === "auto"
+            ? require("../assets/images/inside/auto2.png")
+            : require("../assets/images/inside/noAuto.png")
+        }
+        style={styles.image1}
+      />
+    </Pressable>
   );
 }
-
-
 
 export function OneButtonForStatusPage({
   paragraphName,

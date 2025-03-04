@@ -12,14 +12,15 @@
 #include <ArduinoOTA.h> //pentru programare prin wifi
 
 
+
 // WiFi credentials
-// const char* ssid = "Seco";
-// const char* password = "secosanpq1";
+const char* ssid = "Seco";
+const char* password = "secosanpq1";
 
 
 // WiFi credentials
-const char* ssid = "xSecoI";
-const char* password = "seco1212";
+// const char* ssid = "xSecoI";
+// const char* password = "seco1212";
 
 // Firebase configuration
 #define FIREBASE_HOST "licentalivedb-default-rtdb.firebaseio.com"
@@ -147,6 +148,7 @@ void handleSensorsStatus() {
   int fireState = digitalRead(FIRE_SENSOR_PIN);
   int gasState = analogRead(GAS_SENSOR_PIN);
   int rainValue = digitalRead(RAIN_SENSOR_PIN);
+  float freeRam = ESP.getFreeHeap() / 1024.0;  // Convertim bytes în kilobytes
 
   if (fireState == LOW) {
     message += "Fire detected! ";
@@ -157,7 +159,9 @@ void handleSensorsStatus() {
 
   message += "Gas Value: " + String(gasState) + "\n";
   message += "Rain Value: " + String(rainValue) + "\n";
- 
+  message += "RAM: " + String(freeRam, 2) + " kB" + "\n";
+
+
   server.send(200, "text/plain", message);
 }
 
@@ -416,8 +420,9 @@ void handleForward() {
     isStepperMotorRunning = true;
 
     // long steps = (205L * 2048L) / 360L; // 205 de grade -> pași; 2048L reprezintă numărul total de pași pentru o rotație completă (360 de grade) a motorului pas cu pas.
-    long steps = (177L * 2048L) / 360L; // 205 de grade -> pași; 2048L reprezintă numărul total de pași pentru o rotație completă (360 de grade) a motorului pas cu pas.
+    // long steps = (178L * 2048L) / 360L; // 205 de grade -> pași; 2048L reprezintă numărul total de pași pentru o rotație completă (360 de grade) a motorului pas cu pas.
 
+    long steps = (175L * 2048L) / 360L; // 205 de grade -> pași; 2048L reprezintă numărul total de pași pentru o rotație completă (360 de grade) a motorului pas cu pas.
     stepper.setStepsToMake(steps, true); //Se setează motorul să facă un anumit număr de pași. Parametrul 2 indică direcția (true pentru înainte, false pentru înapoi).
 
     // Când motorul termină, setează isMotorRunning pe false, e nevoie de while pentru ca setStepsToMake setează numărul de pași și direcția, dar NU îi execută imediat, actualizarea motorului se face prin update() care trebuie apelata periodic pentru a continua miscarea. update() verifică dacă a trecut suficient timp (STEP_TIME) și apoi face următorul pas.
@@ -447,7 +452,7 @@ void handleBackward() {
    isStepperMotorRunning = true;
 
     // long steps = (190L * 2048L) / 360L; // 190 de grade -> pași
-    long steps = (173L * 2048L) / 360L; // 190 de grade -> pași
+    long steps = (175L * 2048L) / 360L; // 190 de grade -> pași
 
     stepper.setStepsToMake(steps, false);
 
@@ -642,10 +647,10 @@ void armHouse() {
             activateBuzzer(); 
             String alertMessage = "Alarm!!";
             if (currentMotionDetected) {
-                alertMessage += " Mișcare detectată!";
+                alertMessage += " Motion detected!";
             }
             if (isDoorOpen) {
-                alertMessage += " Ușa este deschisă!";
+                alertMessage += " The door is open!";
             }
             Firebase.setString(firebaseData, "/security/alert", alertMessage);
             isAlarmTriggered = true; // Setăm starea alarmei ca fiind declanșată
@@ -936,10 +941,9 @@ void streamTimeoutCallback(bool timeout) {
   Firebase.begin(&firebaseConfig, &firebaseAuth);
   Firebase.reconnectWiFi(true);
 
-  // stream.setBSSLBufferSize(512, 128); nu 
-  stream.setBSSLBufferSize(1024, 256); // Crește bufferul dacă datele sunt mari
-  // stream.setBSSLBufferSize(2048, 256);//e ok 
-// 4096 sau chiar 8192 dacă datele sunt semnificativ mai mari la prima valoare la citire
+  // stream.setBSSLBufferSize(512, 128); 
+  // stream.setBSSLBufferSize(1024, 256); //e bun in caz ca nu merge standard
+  // stream.setBSSLBufferSize(2048, 256);//poate mai merge 
 
   // Setarea MultiPath Stream
   if (!Firebase.beginMultiPathStream(stream, parentPath)) {
@@ -948,7 +952,7 @@ void streamTimeoutCallback(bool timeout) {
 
   Firebase.setMultiPathStreamCallback(stream, streamCallback, streamTimeoutCallback);
   Firebase.setString(firebaseData, "/statusESP8266/reset", "no reset");
-  Serial.println("Connected to Firebase");
+  // Serial.println("Connected to Firebase");
 
   reportResetReason();
   reportStaticInfo();
